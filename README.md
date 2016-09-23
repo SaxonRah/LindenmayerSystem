@@ -73,7 +73,7 @@ Plugin was built and tested with 4.13.0
 			FRLSRenderInfo contains an array of rules for the rendering.
 
 # Things to do
-	Measure performance of LSystem struct. Maybe look at changing some functions by ref and const correctness
+	Measure performance of LSystem struct. Maybe look at changing some functions by ref with const correctness
 	Expand Turtle example functions to control debug output
 	Create Turtle functions to make Spline Mesh
 	Implement the procedural mesh component and do 100% procedural l system gen
