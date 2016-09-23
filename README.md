@@ -3,7 +3,13 @@ A simple C++ plugin containing everything needed to play with Lindenmayer System
 
 # Blueprint Usage
 	Refer to the picture in the root. Then place cp in world and run.
-
+	
+	3D Tree Example Rules
+	Generations :	3
+	Axiom :			"1"
+	Rules :			"1" -> "D-D+D+D[<+^2]-DD-D[<^-2]<^2"
+					"2" -> "D+D-DD>L>>L[<+1]-DDD>L>>L>L[<-1]<1"
+	
 # C++ Usage
 ## LSystem Setup and Grow
 		// Setup
