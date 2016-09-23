@@ -1,6 +1,9 @@
 # LindenmayerSystem
 A simple C++ plugin containing everything needed to play with Lindenmayer Systems.
 
+# Blueprint Usage
+	Refer to the picture in the root. 
+
 # C++ Usage
 ## LSystem Setup and Grow
 		// Setup
