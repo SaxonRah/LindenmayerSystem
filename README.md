@@ -2,13 +2,17 @@
 A simple C++ plugin containing everything needed to play with Lindenmayer Systems.
 
 # Blueprint Usage
-	Refer to the picture in the root. Then place the blueprint actor in the world and run.
+	Install plugin to game directory or engine directory.
+	Create blueprint actor based on LMSystem Actor.
+	Refer to the picture in the root.
+	Then place the blueprint actor in the world and run.
 	
+	If using video tutorial or want this, Here are the 3D Tree Rules
 	3D Tree Example Rules
 	Generations :	3
 	Axiom :			"1"
 	Rules :			"1" -> "D-D+D+D[<+^2]-DD-D[<^-2]<^2"
-					"2" -> "D+D-DD>L>>L[<+1]-DDD>L>>L>L[<-1]<1"
+				"2" -> "D+D-DD>L>>L[<+1]-DDD>L>>L>L[<-1]<1"
 	
 # C++ Usage
 ## LSystem Setup and Grow
