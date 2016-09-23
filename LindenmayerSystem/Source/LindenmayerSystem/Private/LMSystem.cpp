@@ -1,4 +1,5 @@
-﻿#include "LindenmayerSystemPrivatePCH.h"
+﻿// Robert Chubb a.k.a SaxonRah
+#include "LindenmayerSystemPrivatePCH.h"
 #include "Kismet/KismetStringLibrary.h"
 #include "Kismet/KismetMathLibrary.h"
 #include "Kismet/KismetArrayLibrary.h"
