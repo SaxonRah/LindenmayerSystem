@@ -2,7 +2,7 @@
 A simple C++ plugin containing everything needed to play with Lindenmayer Systems.
 
 # C++ Usage
-	## LSystem Setup and Grow
+## LSystem Setup and Grow
 		// Setup
 		FLSInfo KochCurveInfo;
 		KochCurveInfo.Generations = 4;
@@ -16,7 +16,7 @@ A simple C++ plugin containing everything needed to play with Lindenmayer System
 		// Will grow by given generation parameter
 		GrowLSystemBy(6);
 	
-	## Render LSystem Setup and Rendering
+## Render LSystem Setup and Rendering
 		// We use an array of rules to give users the ability to have multiple commands per variable.
 		TArray<ERLSRenderRuleType> RenderRuleTypeArray; RenderRuleTypeArray.Empty();
 
@@ -44,14 +44,14 @@ A simple C++ plugin containing everything needed to play with Lindenmayer System
 		
 
 # C++ Heierarchy
-	## ALMSystem.h/cpp
+## ALMSystem.h/cpp
 		ALMSystem is a LSystem Actor that has a pet turtle which has magical drawing powers. It also has several example LSystems.
 		It contains several structures helping facilitate LSystems.
 			FLSRule
 			FLSInfo
 			FLSystem
 		
-	## RenderLSystem.h
+## RenderLSystem.h
 		RenderLSystem is contains structures to help rendering.
 			FRLSTInfo is a structure containing information about the turtle's transform.
 			ERLSRenderRuleType is an enum containing all the different turtle commands.
