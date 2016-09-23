@@ -2,7 +2,7 @@
 A simple C++ plugin containing everything needed to play with Lindenmayer Systems.
 
 # Blueprint Usage
-	Refer to the picture in the root. Then place cp in world and run.
+	Refer to the picture in the root. Then place the blueprint actor in the world and run.
 	
 	3D Tree Example Rules
 	Generations :	3
