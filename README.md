@@ -1,5 +1,6 @@
 # LindenmayerSystem
 A simple C++ plugin containing everything needed to play with Lindenmayer Systems.
+Plugin was built and tested with 4.13.0
 
 # Blueprint Usage
 	Install plugin to game directory or engine directory.
@@ -12,7 +13,7 @@ A simple C++ plugin containing everything needed to play with Lindenmayer System
 	Generations :	3
 	Axiom :			"1"
 	Rules :			"1" -> "D-D+D+D[<+^2]-DD-D[<^-2]<^2"
-				"2" -> "D+D-DD>L>>L[<+1]-DDD>L>>L>L[<-1]<1"
+					"2" -> "D+D-DD>L>>L[<+1]-DDD>L>>L>L[<-1]<1"
 	
 # C++ Usage
 ## LSystem Setup and Grow
