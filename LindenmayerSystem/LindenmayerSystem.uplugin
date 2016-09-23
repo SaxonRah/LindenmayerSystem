@@ -1,0 +1,24 @@
+{
+	"FileVersion": 3,
+	"Version": 1,
+	"VersionName": "1.0",
+	"FriendlyName": "Lindenmayer System",
+	"Description": "A C++ plugin containing everything you need to play with Lindenmayer Systems.",
+	"Category": "Other",
+	"CreatedBy": "Robert Chubb  a.k.a  SaxonRah",
+	"CreatedByURL": "https://www.youtube.com/user/ParabolicLabs",
+	"DocsURL": "",
+	"MarketplaceURL": "",
+	"SupportURL": "paraboliclabs@gmail.com",
+	"EnabledByDefault": false,
+	"CanContainContent": true,
+	"IsBetaVersion": false,
+	"Installed": false,
+	"Modules": [
+		{
+			"Name": "LindenmayerSystem",
+			"Type": "Developer",
+			"LoadingPhase": "Default"
+		}
+	]
+}
