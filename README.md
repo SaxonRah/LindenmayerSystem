@@ -45,8 +45,8 @@ A simple C++ plugin containing everything needed to play with Lindenmayer System
 
 # C++ Heierarchy
 ## ALMSystem.h/cpp
-		ALMSystem is a LSystem Actor that has a pet turtle which has magical drawing powers. It also has several example LSystems.
-		It contains several structures helping facilitate LSystems.
+		ALMSystem is a LSystem Actor that has a pet turtle which has magical drawing powers.
+		It also has several example LSystems. It contains several structures helping facilitate LSystems.
 			FLSRule
 			FLSInfo
 			FLSystem
