@@ -461,67 +461,77 @@ void ALMSystem::SplineRestore()
 	RenderTurtle->SetWorldTransform(TurtleInfo.Transform, false, &hit, ETeleportType::None);
 }
 
-void ALMSystem::SetSplinePoints()
+void ALMSystem::SetSplineMeshes()
 {
-
-	/* DEPREC
-	if (State.Num() >= 1 || !SplineRenderMesh || !SplineRenderMeshMaterial)
+	// Clean up old Spline Meshes / Materials
+	for (int32 smc = 0; smc < SplineMeshComponents.Num(); ++smc)
 	{
-		for (int32 sts = 0; sts < State.Num(); ++sts)
-		{
-			SplineComponents->AddSplineLocalPoint(State[sts].Transform.GetLocation());
-		}
-		for (int32 sp = 0; sp < SplineComponents->GetNumberOfSplinePoints() - 1; ++sp)
-		{
-			//Set the color!
-			UMaterialInstanceDynamic* dynamicMat = UMaterialInstanceDynamic::Create(SplineRenderMeshMaterial, NULL);
-			dynamicMat->SetVectorParameterValue(TEXT("Color"), FLinearColor(0.5f, 0.3f, 0.1f, 1.0f));
-
-			USplineMeshComponent* SplineMesh = NewObject<USplineMeshComponent>(USplineMeshComponent::StaticClass(), FName("SplineMesh"));
-			SplineMesh->SetMobility(EComponentMobility::Movable);
-			//SplineMesh->CreationMethod = EComponentCreationMethod::UserConstructionScript;
-			//SplineMesh->AttachParent = RenderSplineComponent;
-
-			//Width of the mesh 
-			SplineMesh->SetStartScale(FVector2D(50, 50), true);
-			SplineMesh->SetEndScale(FVector2D(50, 50), true);
-
-			FVector pointLocationStart, pointTangentStart, pointLocationEnd, pointTangentEnd;
-			SplineComponent->GetLocalLocationAndTangentAtSplinePoint(sp, pointLocationStart, pointTangentStart);
-			SplineComponent->GetLocalLocationAndTangentAtSplinePoint(sp + 1, pointLocationEnd, pointTangentEnd);
-
-			SplineMesh->SetStartAndEnd(pointLocationStart, pointTangentStart, pointLocationEnd, pointTangentEnd, false);
-
-			SplineMesh->bCastDynamicShadow = false;
-			SplineMesh->SetStaticMesh(SplineRenderMesh);
-			SplineMesh->SetMaterial(0, dynamicMat);
-
-		}
-		//RegisterAllComponents();
-	} 
+		SplineMeshComponents[smc]->DestroyComponent(false);
+	}
+	SplineMeshComponents.Empty();
+	/*
+	for (int32 m = 0; m < Materials.Num(); ++m)
+	{
+		Materials[m]->MarkPendingKill();
+	}
+	Materials.Empty();
 	*/
+	if (SplineComponents.Num() >= 1 && SplineRenderMesh->IsValidLowLevel() && SplineRenderMeshMaterial->IsValidLowLevel())
+	{
+		for (int32 sc = 0; sc < SplineComponents.Num(); ++sc)
+		{
+			for (int32 sp = 0; sp < SplineComponents[sc]->GetNumberOfSplinePoints() - 1; ++sp)
+			{
+				//Set the color!
+				UMaterialInstanceDynamic* dynamicMat = UMaterialInstanceDynamic::Create(SplineRenderMeshMaterial, this);
+				dynamicMat->SetVectorParameterValue(TEXT("Color"), FLinearColor(0.5f, 0.3f, 0.1f, 1.0f));
+				
+				USplineMeshComponent* SplineMesh;
+				FTransform Temp; Temp = FTransform(FRotator(0, 0, 0), SplineComponents[sc]->GetLocationAtSplinePoint(sp, ESplineCoordinateSpace::Local), FVector(1, 1, 1));
+				SplineMesh = (USplineMeshComponent*)CreateProceduralComponent(USplineMeshComponent::StaticClass(), Temp);
+				SplineMesh->SetMobility(EComponentMobility::Movable);
+				//SplineMesh->AttachToComponent(SplineComponents[sc]->GetChildComponent(0), FAttachmentTransformRules::KeepWorldTransform, NAME_None);
+
+				//Width of the mesh 
+				/*
+				float StartSize = 0.2f * (SplineComponents[sc]->GetNumberOfSplinePoints() - sp);
+				float EndSize = 0.1f * (SplineComponents[sc]->GetNumberOfSplinePoints() - sp);
+				SplineMesh->SetStartScale(FVector2D(StartSize, StartSize), true);
+				SplineMesh->SetEndScale(FVector2D(EndSize, EndSize), true);
+				*/
+
+				SplineMesh->SetStartScale(FVector2D(1.0f, 1.0f), true);
+				SplineMesh->SetEndScale(FVector2D(1.0f, 1.0f), true);
+
+				FVector pointLocationStart, pointTangentStart, pointLocationEnd, pointTangentEnd;
+				SplineComponents[sc]->GetLocalLocationAndTangentAtSplinePoint(sp, pointLocationStart, pointTangentStart);
+				SplineComponents[sc]->GetLocalLocationAndTangentAtSplinePoint(sp + 1, pointLocationEnd, pointTangentEnd);
+
+				SplineMesh->SetStartAndEnd(pointLocationStart, pointTangentStart, pointLocationEnd, pointTangentEnd, false);
+
+				SplineMesh->bCastDynamicShadow = false;
+				SplineMesh->SetStaticMesh(SplineRenderMesh);
+				SplineMesh->SetMaterial(0, dynamicMat);
+				// Materials.Add(dynamicMat);
+				SplineMeshComponents.Add(SplineMesh);
+			}
+		}
+	} 
 }
 
-USplineComponent* ALMSystem::CreateSplineComponent(const FTransform& Transform, const FName& AttachSocket)
+UPrimitiveComponent* ALMSystem::CreateProceduralComponent(UClass* Type, const FTransform& Transform)
 {
-	FName SplineName("CreatedSplineComponent");
-
-	//CompClass can be a BP
-	//USplineComponent* NewComp = NewObject<USplineComponent>(USplineComponent::StaticClass(), SplineName, RF_Public);
-	USplineComponent* NewComp = NewObject<USplineComponent>(this);
-	if (!NewComp)
+	UPrimitiveComponent* CreatedComponent = NewObject<UPrimitiveComponent>(this, Type);
+	if (!CreatedComponent)
 	{
-		return (USplineComponent*)nullptr;
+		return (UPrimitiveComponent*)nullptr;
 	}
 
-	//NewComp->AddToRoot();
-
-	NewComp->RegisterComponent();        //You must ConstructObject with a valid Outer that has world, see above	 
-	NewComp->SetWorldLocation(Transform.GetLocation());
-	NewComp->SetWorldRotation(Transform.GetRotation());
-	NewComp->AttachToComponent(RenderTurtle, FAttachmentTransformRules::KeepWorldTransform, NAME_None);
-	return NewComp;
-	//could use different than Root Comp
+	CreatedComponent->RegisterComponent(); //You must NewObject<>() with a valid Outer that has world, this == Outer
+	CreatedComponent->SetWorldLocation(Transform.GetLocation());
+	CreatedComponent->SetWorldRotation(Transform.GetRotation());
+	CreatedComponent->AttachToComponent(RenderTurtle, FAttachmentTransformRules::SnapToTargetNotIncludingScale, NAME_None);
+	return CreatedComponent;
 }
 
 // SplineComponents is a TArray of USplineComponents
@@ -532,13 +542,25 @@ USplineComponent* ALMSystem::CreateSplineComponent(const FTransform& Transform, 
 
 void ALMSystem::RenderSplineLSystem(FLSystem System, FRLSRenderInfo RenderInfo)
 {
-	int32 CurrentSplineIndex = 0;
+	// Setup Index var and empty spline array.
+	int32 CurrentSplineIndex = 0, PointIndex = 0;;
 	SplineComponents.Empty();
 
-	USplineComponent* RootSplineTemp = CreateSplineComponent(RenderTurtle->GetComponentTransform());
+	// Clean up old Spline Meshes
+	for (int32 smc = 0; smc < SplineMeshComponents.Num(); ++smc)
+	{
+		SplineMeshComponents[smc]->DestroyComponent(false);
+	}
+	SplineMeshComponents.Empty();
+
+	// Create, Setup and Add Component to Array
+	USplineComponent* RootSplineTemp;
+	FTransform Temp = RenderTurtle->GetComponentTransform();
+	RootSplineTemp = (USplineComponent*)CreateProceduralComponent(USplineComponent::StaticClass(), Temp);
 	RootSplineTemp->SetClosedLoop(false);
-	//RootSplineTemp->AddSplineLocalPoint(RenderTurtle->GetComponentTransform().GetLocation());
-	SplineComponents.Add(RootSplineTemp);
+	RootSplineTemp->ClearSplinePoints(false);
+
+	CurrentSplineIndex = SplineComponents.Add(RootSplineTemp);
 
 	// Loop through entire string state
 	FString TempString = System.Info.States.Last();
@@ -577,6 +599,49 @@ void ALMSystem::RenderSplineLSystem(FLSystem System, FRLSRenderInfo RenderInfo)
 
 						// Draw then Add a new point to the current spline
 						SplineComponents[CurrentSplineIndex]->AddSplineLocalPoint(RenderTurtle->GetComponentTransform().GetLocation());
+						
+						PointIndex = PointIndex + 1;
+						//Set the color!
+						UMaterialInstanceDynamic* dynamicMat = UMaterialInstanceDynamic::Create(SplineRenderMeshMaterial, this);
+						dynamicMat->SetVectorParameterValue(TEXT("Color"), FLinearColor(0.5f, 0.3f, 0.1f, 1.0f));
+
+						USplineMeshComponent* SplineMesh;
+						Temp = RenderTurtle->GetComponentTransform();
+						SplineMesh = (USplineMeshComponent*)CreateProceduralComponent(USplineMeshComponent::StaticClass(), Temp);
+						SplineMesh->SetMobility(EComponentMobility::Movable);
+						//SplineMesh->AttachToComponent(SplineComponents[sc]->GetChildComponent(0), FAttachmentTransformRules::KeepWorldTransform, NAME_None);
+
+						//Width of the mesh 
+						/*
+						float StartSize = 0.2f * (SplineComponents[sc]->GetNumberOfSplinePoints() - sp);
+						float EndSize = 0.1f * (SplineComponents[sc]->GetNumberOfSplinePoints() - sp);
+						SplineMesh->SetStartScale(FVector2D(StartSize, StartSize), true);
+						SplineMesh->SetEndScale(FVector2D(EndSize, EndSize), true);
+						*/
+
+						SplineMesh->SetStartScale(FVector2D(1.0f, 1.0f), true);
+						SplineMesh->SetEndScale(FVector2D(1.0f, 1.0f), true);
+
+						FVector pointLocationStart, pointTangentStart, pointLocationEnd, pointTangentEnd;
+						if (PointIndex == 0 && SplineComponents[CurrentSplineIndex]->GetNumberOfSplinePoints() >= 2)
+						{
+							SplineComponents[CurrentSplineIndex]->GetLocalLocationAndTangentAtSplinePoint(PointIndex, pointLocationStart, pointTangentStart);
+							SplineComponents[CurrentSplineIndex]->GetLocalLocationAndTangentAtSplinePoint(PointIndex + 1, pointLocationEnd, pointTangentEnd);
+						}
+						else if (PointIndex >=1 && SplineComponents[CurrentSplineIndex]->GetNumberOfSplinePoints() >= 2)
+						{
+							SplineComponents[CurrentSplineIndex]->GetLocalLocationAndTangentAtSplinePoint(PointIndex - 1, pointLocationStart, pointTangentStart);
+							SplineComponents[CurrentSplineIndex]->GetLocalLocationAndTangentAtSplinePoint(PointIndex, pointLocationEnd, pointTangentEnd);
+						} 
+
+						SplineMesh->SetStartAndEnd(pointLocationStart, pointTangentStart, pointLocationEnd, pointTangentEnd, false);
+
+						SplineMesh->bCastDynamicShadow = false;
+						SplineMesh->SetStaticMesh(SplineRenderMesh);
+						SplineMesh->SetMaterial(0, dynamicMat);
+						// Materials.Add(dynamicMat);
+						SplineMeshComponents.Add(SplineMesh);
+
 						break;
 					}
 					case ERLSRenderRuleType::LSRR_DrawLeaf:
@@ -586,6 +651,7 @@ void ALMSystem::RenderSplineLSystem(FLSystem System, FRLSRenderInfo RenderInfo)
 
 						// Draw Leaf then Add a new point to the current spline
 						SplineComponents[CurrentSplineIndex]->AddSplineLocalPoint(RenderTurtle->GetComponentTransform().GetLocation());
+						PointIndex = PointIndex + 1;
 						break;
 					}
 					case ERLSRenderRuleType::LSRR_TurnRight:
@@ -634,7 +700,6 @@ void ALMSystem::RenderSplineLSystem(FLSystem System, FRLSRenderInfo RenderInfo)
 					{
 						Save();
 						//SplineSave();
-
 						break;
 					}
 					case ERLSRenderRuleType::LSRR_Restore:
@@ -643,14 +708,16 @@ void ALMSystem::RenderSplineLSystem(FLSystem System, FRLSRenderInfo RenderInfo)
 						//SplineRestore();
 
 						// Restore turtle position then start a new spline
-						USplineComponent* SplineTemp = CreateSplineComponent(RenderTurtle->GetComponentTransform());
+						USplineComponent* SplineTemp;
+						Temp = RenderTurtle->GetComponentTransform();
+						SplineTemp = (USplineComponent*)CreateProceduralComponent(USplineComponent::StaticClass(), Temp);
 						SplineTemp->SetClosedLoop(false);
+						SplineTemp->ClearSplinePoints(false);
 
 						// Add point at restores spline index
-						//SplineTemp->AddSplineLocalPoint(RenderTurtle->GetComponentTransform().GetLocation());
+						SplineTemp->AddSplineLocalPoint(Temp.GetLocation());
+						PointIndex = 0;
 						CurrentSplineIndex = SplineComponents.Add(SplineTemp);
-						// CurrentSplineIndex = SplineComponents.Num() - 1;
-
 						break;
 					}
 					case ERLSRenderRuleType::LSRR_COUNT:
@@ -665,6 +732,10 @@ void ALMSystem::RenderSplineLSystem(FLSystem System, FRLSRenderInfo RenderInfo)
 
 	RenderTurtle->SetWorldTransform(this->GetActorTransform());
 	TurtleInfo.Transform = RenderTurtle->GetComponentTransform();
+
+	//SetSplineMeshes();
+
+	RegisterAllComponents();
 }
 
 // Examples

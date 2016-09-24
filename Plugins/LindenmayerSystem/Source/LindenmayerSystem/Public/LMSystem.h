@@ -256,6 +256,10 @@ public:
 	void SplineSave();
 	void SplineRestore();
 
+	//UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "LSystem|Spline")
+		//TArray<UMaterialInstanceDynamic*> Materials;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "LSystem|Spline")
+		TArray<USplineMeshComponent*> SplineMeshComponents;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "LSystem|Spline")
 		TArray<USplineComponent*> SplineComponents;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "LSystem|Spline")
@@ -264,12 +268,9 @@ public:
 		UMaterial* SplineRenderMeshMaterial;
 
 	UFUNCTION(BlueprintCallable, Category = "LSystem|Spline")
-		void SetSplinePoints();
-
+		void SetSplineMeshes();
 	UFUNCTION(BlueprintCallable, Category = "LSystem|Spline")
-		USplineComponent* CreateSplineComponent(const FTransform& Transform, const FName& AttachSocket = NAME_None);
-
-	
+		UPrimitiveComponent* CreateProceduralComponent(UClass* Type, const FTransform& Transform);
 	UFUNCTION(BlueprintCallable, Category = "LSystem|Spline")
 		void RenderSplineLSystem(FLSystem System, FRLSRenderInfo RenderInfo);
 	
