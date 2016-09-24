@@ -476,14 +476,14 @@ void ALMSystem::SetSplineMeshes()
 	}
 	Materials.Empty();
 	*/
-	if (SplineComponents.Num() >= 1 && SplineRenderMesh->IsValidLowLevel() && SplineRenderMeshMaterial->IsValidLowLevel())
+	if (SplineComponents.Num() >= 1 && SplineDrawMesh->IsValidLowLevel() && SplineDrawMaterial->IsValidLowLevel())
 	{
 		for (int32 sc = 0; sc < SplineComponents.Num(); ++sc)
 		{
 			for (int32 sp = 0; sp < SplineComponents[sc]->GetNumberOfSplinePoints() - 1; ++sp)
 			{
 				//Set the color!
-				UMaterialInstanceDynamic* dynamicMat = UMaterialInstanceDynamic::Create(SplineRenderMeshMaterial, this);
+				UMaterialInstanceDynamic* dynamicMat = UMaterialInstanceDynamic::Create(SplineDrawMaterial, this);
 				dynamicMat->SetVectorParameterValue(TEXT("Color"), FLinearColor(0.5f, 0.3f, 0.1f, 1.0f));
 				
 				USplineMeshComponent* SplineMesh;
@@ -510,7 +510,7 @@ void ALMSystem::SetSplineMeshes()
 				SplineMesh->SetStartAndEnd(pointLocationStart, pointTangentStart, pointLocationEnd, pointTangentEnd, false);
 
 				SplineMesh->bCastDynamicShadow = false;
-				SplineMesh->SetStaticMesh(SplineRenderMesh);
+				SplineMesh->SetStaticMesh(SplineDrawMesh);
 				SplineMesh->SetMaterial(0, dynamicMat);
 				// Materials.Add(dynamicMat);
 				SplineMeshComponents.Add(SplineMesh);
@@ -530,7 +530,7 @@ UPrimitiveComponent* ALMSystem::CreateProceduralComponent(UClass* Type, const FT
 	CreatedComponent->RegisterComponent(); //You must NewObject<>() with a valid Outer that has world, this == Outer
 	CreatedComponent->SetWorldLocation(Transform.GetLocation());
 	CreatedComponent->SetWorldRotation(Transform.GetRotation());
-	CreatedComponent->AttachToComponent(RenderTurtle, FAttachmentTransformRules::SnapToTargetNotIncludingScale, NAME_None);
+	CreatedComponent->AttachToComponent(RootComp, FAttachmentTransformRules::SnapToTargetIncludingScale, NAME_None);
 	return CreatedComponent;
 }
 
@@ -559,6 +559,7 @@ void ALMSystem::RenderSplineLSystem(FLSystem System, FRLSRenderInfo RenderInfo)
 	RootSplineTemp = (USplineComponent*)CreateProceduralComponent(USplineComponent::StaticClass(), Temp);
 	RootSplineTemp->SetClosedLoop(false);
 	RootSplineTemp->ClearSplinePoints(false);
+	RootSplineTemp->AddSplineLocalPoint(Temp.GetLocation());
 
 	CurrentSplineIndex = SplineComponents.Add(RootSplineTemp);
 
@@ -594,65 +595,128 @@ void ALMSystem::RenderSplineLSystem(FLSystem System, FRLSRenderInfo RenderInfo)
 					}
 					case ERLSRenderRuleType::LSRR_Draw:
 					{
-						Draw(RenderInfo.Rules[r].Length);
-						//SplineDraw(RenderInfo.Rules[r].Length, i);
-
-						// Draw then Add a new point to the current spline
-						SplineComponents[CurrentSplineIndex]->AddSplineLocalPoint(RenderTurtle->GetComponentTransform().GetLocation());
-						
-						PointIndex = PointIndex + 1;
-						//Set the color!
-						UMaterialInstanceDynamic* dynamicMat = UMaterialInstanceDynamic::Create(SplineRenderMeshMaterial, this);
-						dynamicMat->SetVectorParameterValue(TEXT("Color"), FLinearColor(0.5f, 0.3f, 0.1f, 1.0f));
-
-						USplineMeshComponent* SplineMesh;
-						Temp = RenderTurtle->GetComponentTransform();
-						SplineMesh = (USplineMeshComponent*)CreateProceduralComponent(USplineMeshComponent::StaticClass(), Temp);
-						SplineMesh->SetMobility(EComponentMobility::Movable);
-						//SplineMesh->AttachToComponent(SplineComponents[sc]->GetChildComponent(0), FAttachmentTransformRules::KeepWorldTransform, NAME_None);
-
-						//Width of the mesh 
-						/*
-						float StartSize = 0.2f * (SplineComponents[sc]->GetNumberOfSplinePoints() - sp);
-						float EndSize = 0.1f * (SplineComponents[sc]->GetNumberOfSplinePoints() - sp);
-						SplineMesh->SetStartScale(FVector2D(StartSize, StartSize), true);
-						SplineMesh->SetEndScale(FVector2D(EndSize, EndSize), true);
-						*/
-
-						SplineMesh->SetStartScale(FVector2D(1.0f, 1.0f), true);
-						SplineMesh->SetEndScale(FVector2D(1.0f, 1.0f), true);
-
-						FVector pointLocationStart, pointTangentStart, pointLocationEnd, pointTangentEnd;
-						if (PointIndex == 0 && SplineComponents[CurrentSplineIndex]->GetNumberOfSplinePoints() >= 2)
+						if (SplineDrawMesh->IsValidLowLevel() && SplineDrawMaterial->IsValidLowLevel())
 						{
-							SplineComponents[CurrentSplineIndex]->GetLocalLocationAndTangentAtSplinePoint(PointIndex, pointLocationStart, pointTangentStart);
-							SplineComponents[CurrentSplineIndex]->GetLocalLocationAndTangentAtSplinePoint(PointIndex + 1, pointLocationEnd, pointTangentEnd);
-						}
-						else if (PointIndex >=1 && SplineComponents[CurrentSplineIndex]->GetNumberOfSplinePoints() >= 2)
-						{
-							SplineComponents[CurrentSplineIndex]->GetLocalLocationAndTangentAtSplinePoint(PointIndex - 1, pointLocationStart, pointTangentStart);
-							SplineComponents[CurrentSplineIndex]->GetLocalLocationAndTangentAtSplinePoint(PointIndex, pointLocationEnd, pointTangentEnd);
+							// Draw then Add a new point to the current spline
+							Draw(RenderInfo.Rules[r].Length);
+							//SplineDraw(RenderInfo.Rules[r].Length, i);
+
+							SplineComponents[CurrentSplineIndex]->AddSplineLocalPoint(RenderTurtle->GetComponentTransform().GetLocation());
+							PointIndex = PointIndex + 1;
+
+							//Set the color!
+							UMaterialInstanceDynamic* dynamicMat = UMaterialInstanceDynamic::Create(SplineDrawMaterial, this);
+							dynamicMat->SetVectorParameterValue(TEXT("Color"), FLinearColor(0.5f, 0.3f, 0.1f, 1.0f));
+
+							USplineMeshComponent* SplineMesh;
+							Temp = RenderTurtle->GetComponentTransform();
+							SplineMesh = (USplineMeshComponent*)CreateProceduralComponent(USplineMeshComponent::StaticClass(), Temp);
+							SplineMesh->SetMobility(EComponentMobility::Movable);
+
+							//Width of the mesh 
+							/*
+							float StartSize = 0.2f * (SplineComponents[sc]->GetNumberOfSplinePoints() - sp);
+							float EndSize = 0.1f * (SplineComponents[sc]->GetNumberOfSplinePoints() - sp);
+							SplineMesh->SetStartScale(FVector2D(StartSize, StartSize), true);
+							SplineMesh->SetEndScale(FVector2D(EndSize, EndSize), true);
+							*/
+
+							SplineMesh->SetStartScale(FVector2D(1.0f, 1.0f), true);
+							SplineMesh->SetEndScale(FVector2D(1.0f, 1.0f), true);
+
+							FVector pointLocationStart, pointTangentStart, pointLocationEnd, pointTangentEnd;
+							if (PointIndex == 0 && SplineComponents[CurrentSplineIndex]->GetNumberOfSplinePoints() >= 2)
+							{
+								SplineComponents[CurrentSplineIndex]->GetLocalLocationAndTangentAtSplinePoint(PointIndex, pointLocationStart, pointTangentStart);
+								SplineComponents[CurrentSplineIndex]->GetLocalLocationAndTangentAtSplinePoint(PointIndex + 1, pointLocationEnd, pointTangentEnd);
+							}
+							else if (PointIndex >= 1 && SplineComponents[CurrentSplineIndex]->GetNumberOfSplinePoints() >= 2)
+							{
+								SplineComponents[CurrentSplineIndex]->GetLocalLocationAndTangentAtSplinePoint(PointIndex - 1, pointLocationStart, pointTangentStart);
+								SplineComponents[CurrentSplineIndex]->GetLocalLocationAndTangentAtSplinePoint(PointIndex, pointLocationEnd, pointTangentEnd);
+							}
+
+							SplineMesh->SetStartAndEnd(pointLocationStart, pointTangentStart, pointLocationEnd, pointTangentEnd, false);
+
+							SplineMesh->bCastDynamicShadow = false;
+							SplineMesh->SetStaticMesh(SplineDrawMesh);
+							SplineMesh->SetMaterial(0, dynamicMat);
+							// Materials.Add(dynamicMat);
+							SplineMeshComponents.Add(SplineMesh);
+							break;
 						} 
+						else 
+						{
+							// Draw then Add a new point to the current spline
+							Draw(RenderInfo.Rules[r].Length);
+							//SplineDraw(RenderInfo.Rules[r].Length, i);
 
-						SplineMesh->SetStartAndEnd(pointLocationStart, pointTangentStart, pointLocationEnd, pointTangentEnd, false);
-
-						SplineMesh->bCastDynamicShadow = false;
-						SplineMesh->SetStaticMesh(SplineRenderMesh);
-						SplineMesh->SetMaterial(0, dynamicMat);
-						// Materials.Add(dynamicMat);
-						SplineMeshComponents.Add(SplineMesh);
-
-						break;
+							SplineComponents[CurrentSplineIndex]->AddSplineLocalPoint(RenderTurtle->GetComponentTransform().GetLocation());
+							PointIndex = PointIndex + 1;
+							break;
+						}
 					}
 					case ERLSRenderRuleType::LSRR_DrawLeaf:
 					{
-						DrawLeaf(RenderInfo.Rules[r].Angle, RenderInfo.Rules[r].Length);
-						//SplineDrawLeaf(RenderInfo.Rules[r].Angle, RenderInfo.Rules[r].Length);
+						if (SplineDrawLeafMesh->IsValidLowLevel() && SplineDrawLeafMaterial->IsValidLowLevel())
+						{
+							// Draw Leaf then Add a new point to the current spline
+							DrawLeaf(RenderInfo.Rules[r].Angle, RenderInfo.Rules[r].Length);
+							//SplineDrawLeaf(RenderInfo.Rules[r].Angle, RenderInfo.Rules[r].Length);
 
-						// Draw Leaf then Add a new point to the current spline
-						SplineComponents[CurrentSplineIndex]->AddSplineLocalPoint(RenderTurtle->GetComponentTransform().GetLocation());
-						PointIndex = PointIndex + 1;
-						break;
+							SplineComponents[CurrentSplineIndex]->AddSplineLocalPoint(RenderTurtle->GetComponentTransform().GetLocation());
+							PointIndex = PointIndex + 1;
+
+							//Set the color!
+							UMaterialInstanceDynamic* dynamicMat = UMaterialInstanceDynamic::Create(SplineDrawLeafMaterial, this);
+							dynamicMat->SetVectorParameterValue(TEXT("Color"), FLinearColor(0.0f, 0.5f, 0.0f, 1.0f));
+
+							USplineMeshComponent* SplineMesh;
+							Temp = RenderTurtle->GetComponentTransform();
+							SplineMesh = (USplineMeshComponent*)CreateProceduralComponent(USplineMeshComponent::StaticClass(), Temp);
+							SplineMesh->SetMobility(EComponentMobility::Movable);
+
+							//Width of the mesh 
+							/*
+							float StartSize = 0.2f * (SplineComponents[sc]->GetNumberOfSplinePoints() - sp);
+							float EndSize = 0.1f * (SplineComponents[sc]->GetNumberOfSplinePoints() - sp);
+							SplineMesh->SetStartScale(FVector2D(StartSize, StartSize), true);
+							SplineMesh->SetEndScale(FVector2D(EndSize, EndSize), true);
+							*/
+
+							SplineMesh->SetStartScale(FVector2D(1.0f, 1.0f), true);
+							SplineMesh->SetEndScale(FVector2D(1.0f, 1.0f), true);
+
+							FVector pointLocationStart, pointTangentStart, pointLocationEnd, pointTangentEnd;
+							if (PointIndex == 0 && SplineComponents[CurrentSplineIndex]->GetNumberOfSplinePoints() >= 2)
+							{
+								SplineComponents[CurrentSplineIndex]->GetLocalLocationAndTangentAtSplinePoint(PointIndex, pointLocationStart, pointTangentStart);
+								SplineComponents[CurrentSplineIndex]->GetLocalLocationAndTangentAtSplinePoint(PointIndex + 1, pointLocationEnd, pointTangentEnd);
+							}
+							else if (PointIndex >= 1 && SplineComponents[CurrentSplineIndex]->GetNumberOfSplinePoints() >= 2)
+							{
+								SplineComponents[CurrentSplineIndex]->GetLocalLocationAndTangentAtSplinePoint(PointIndex - 1, pointLocationStart, pointTangentStart);
+								SplineComponents[CurrentSplineIndex]->GetLocalLocationAndTangentAtSplinePoint(PointIndex, pointLocationEnd, pointTangentEnd);
+							}
+
+							SplineMesh->SetStartAndEnd(pointLocationStart, pointTangentStart, pointLocationEnd, pointTangentEnd, false);
+
+							SplineMesh->bCastDynamicShadow = false;
+							SplineMesh->SetStaticMesh(SplineDrawLeafMesh);
+							SplineMesh->SetMaterial(0, dynamicMat);
+							// Materials.Add(dynamicMat);
+							SplineMeshComponents.Add(SplineMesh);
+							break;
+						} 
+						else 
+						{ // Draw Leaf then Add a new point to the current spline
+							DrawLeaf(RenderInfo.Rules[r].Angle, RenderInfo.Rules[r].Length);
+							//SplineDrawLeaf(RenderInfo.Rules[r].Angle, RenderInfo.Rules[r].Length);
+
+							SplineComponents[CurrentSplineIndex]->AddSplineLocalPoint(RenderTurtle->GetComponentTransform().GetLocation());
+							PointIndex = PointIndex + 1;
+							break; 
+						}
 					}
 					case ERLSRenderRuleType::LSRR_TurnRight:
 					{

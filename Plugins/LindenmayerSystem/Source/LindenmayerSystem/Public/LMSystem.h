@@ -263,9 +263,13 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "LSystem|Spline")
 		TArray<USplineComponent*> SplineComponents;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "LSystem|Spline")
-		UStaticMesh* SplineRenderMesh;
+		UStaticMesh* SplineDrawMesh;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "LSystem|Spline")
-		UMaterial* SplineRenderMeshMaterial;
+		UMaterial* SplineDrawMaterial;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "LSystem|Spline")
+		UStaticMesh* SplineDrawLeafMesh;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "LSystem|Spline")
+		UMaterial* SplineDrawLeafMaterial;
 
 	UFUNCTION(BlueprintCallable, Category = "LSystem|Spline")
 		void SetSplineMeshes();
