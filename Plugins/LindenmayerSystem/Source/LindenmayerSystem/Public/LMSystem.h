@@ -2,6 +2,8 @@
 #pragma once
 
 #include "GameFramework/Actor.h"
+#include "Classes/Components/SplineComponent.h"
+#include "Classes/Components/SplineMeshComponent.h"
 
 #include "RenderLSystem.h"
 
@@ -197,23 +199,6 @@ UCLASS()
 class ALMSystem : public AActor
 {
 	GENERATED_BODY()
-private:
-	//TQueue<FRLSTInfo> State;
-	TArray<FRLSTInfo> State;
-
-	FTransform Move(float length);
-	void Draw(float length);
-	void DrawLeaf(float angle, float length);
-	void TurnRight(float angle);
-	void TurnLeft(float angle);
-	void Turn180();
-	void PitchUp(float angle);
-	void PitchDown(float angle);
-	void RollRight(float angle);
-	void RollLeft(float angle);
-	void Save();
-	void Restore();
-
 public:
 	// Boilerplate
 	ALMSystem(const FObjectInitializer& ObjectInitializer);
@@ -231,18 +216,63 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "LSystem")
 		void GrowLSystemBy(int32 Generations = 0);
 
+	
 	// Turtle Rendering and Info
+	FTransform Move(float length);
+	void Draw(float length);
+	void DrawLeaf(float angle, float length);
+	void TurnRight(float angle);
+	void TurnLeft(float angle);
+	void Turn180();
+	void PitchUp(float angle);
+	void PitchDown(float angle);
+	void RollRight(float angle);
+	void RollLeft(float angle);
+	void Save();
+	void Restore();
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "LSystem|Render")
+		TArray<FRLSTInfo> State;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "LSystem|Render")
 		FRLSRenderInfo LSystemRenderInfo;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "LSystem|Render")
 		FRLSTInfo TurtleInfo;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "LSystem|Render")
 		USceneComponent* RenderTurtle;
-	
-	// Render
 	UFUNCTION(BlueprintCallable, Category = "LSystem|Render")
 		void RenderLSystem(FLSystem System, FRLSRenderInfo RenderInfo);
+	
+	// Spline
+	FTransform SplineMove(float length);
+	void SplineDraw(float length, int32 index);
+	void SplineDrawLeaf(float angle, float length);
+	void SplineTurnRight(float angle);
+	void SplineTurnLeft(float angle);
+	void SplineTurn180();
+	void SplinePitchUp(float angle);
+	void SplinePitchDown(float angle);
+	void SplineRollRight(float angle);
+	void SplineRollLeft(float angle);
+	void SplineSave();
+	void SplineRestore();
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "LSystem|Spline")
+		TArray<USplineComponent*> SplineComponents;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "LSystem|Spline")
+		UStaticMesh* SplineRenderMesh;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "LSystem|Spline")
+		UMaterial* SplineRenderMeshMaterial;
+
+	UFUNCTION(BlueprintCallable, Category = "LSystem|Spline")
+		void SetSplinePoints();
+
+	UFUNCTION(BlueprintCallable, Category = "LSystem|Spline")
+		USplineComponent* CreateSplineComponent(const FTransform& Transform, const FName& AttachSocket = NAME_None);
+
+	
+	UFUNCTION(BlueprintCallable, Category = "LSystem|Spline")
+		void RenderSplineLSystem(FLSystem System, FRLSRenderInfo RenderInfo);
+	
 	// Examples
 	UFUNCTION(BlueprintCallable, Category = "LSystem|Example")
 		FLSInfo Algae(int32 Generations);
@@ -254,7 +284,6 @@ public:
 		FLSInfo FractalPlant(int32 Generations);
 	UFUNCTION(BlueprintCallable, Category = "LSystem|Example")
 		FLSInfo RahSystem(int32 Generations);
-
 	UFUNCTION(BlueprintCallable, Category = "LSystem|Example")
 		FRLSRenderInfo RenderPythagorasTree();
 	UFUNCTION(BlueprintCallable, Category = "LSystem|Example")

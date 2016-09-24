@@ -8,15 +8,19 @@
 ALMSystem::ALMSystem(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
-
 	// Create and Set our root as the RootComponent
 	RootComp = ObjectInitializer.CreateDefaultSubobject<USceneComponent>(this, TEXT("Root Component"));
 	RootComp->SetMobility(EComponentMobility::Static);
 	RootComponent = RootComp;
 
 	// Create Turtle
-	RenderTurtle = ObjectInitializer.CreateDefaultSubobject<USceneComponent>(this, TEXT("TurtleControl"));
+	RenderTurtle = ObjectInitializer.CreateDefaultSubobject<USceneComponent>(this, TEXT("Turtle Control"));
 	RenderTurtle->SetMobility(EComponentMobility::Movable);
+
+	// Create Spline
+	//RenderSplineComponents = ObjectInitializer.CreateDefaultSubobject<USplineMeshComponent>(this, TEXT("Render Spline Component"));
+	//RenderSplineComponents->SetMobility(EComponentMobility::Movable);
+
 };
 
 // LSystem
@@ -59,7 +63,7 @@ void ALMSystem::Draw(float length)
 	FVector ForwardLength = UKismetMathLibrary::Multiply_VectorFloat(ForwardVector, length);
 	FVector FinalPosition = StartPosition + ForwardLength;
 
-	DrawDebugLine(GetWorld(), StartPosition, FinalPosition, FColor(139, 69, 19), true, -1.0f, 0, 7.0f);
+	DrawDebugLine(GetWorld(), StartPosition, FinalPosition, FColor(139, 69, 19), false, 10.0f, 0, 7.0f);
 }
 
 void ALMSystem::DrawLeaf(float angle, float length)
@@ -71,10 +75,9 @@ void ALMSystem::DrawLeaf(float angle, float length)
 	FVector ForwardLength = UKismetMathLibrary::Multiply_VectorFloat(ForwardVector, length);
 	FVector FinalPosition = StartPosition + ForwardLength;
 
-	DrawDebugLine(GetWorld(), StartPosition, FinalPosition, FColor(139, 69, 19), true, -1.0f, 0, 3.0f);
-	DrawDebugAltCone(GetWorld(), FinalPosition, RenderTurtle->GetComponentTransform().Rotator(), length*2, angle, (angle+(length/2)), FColor(34, 139, 34), true, -1.0, 0, 3.0f);
+	DrawDebugLine(GetWorld(), StartPosition, FinalPosition, FColor(139, 69, 19), false, 10.0, 0, 3.0f);
+	DrawDebugAltCone(GetWorld(), FinalPosition, RenderTurtle->GetComponentTransform().Rotator(), length*2, angle, (angle+(length/2)), FColor(34, 139, 34), false, 10.0, 0, 3.0f);
 }
-
 
 void ALMSystem::TurnRight(float angle)
 {
@@ -181,8 +184,7 @@ void ALMSystem::Save()
 	ti.Thickness = TurtleInfo.Thickness;
 	State.Add(ti);
 
-	DrawDebugString(GetWorld(), ti.Transform.GetLocation() + FVector(0, 0, 25), TEXT("SAVE"), (AActor*)0, FColor::Red, -1.0f, false);
-	// DrawDebugSphere(GetWorld(), ti.Transform.GetLocation(), 15, 15, FColor::Red, true, -1.0, 0, 0.3f);
+	//DrawDebugString(GetWorld(), ti.Transform.GetLocation() + FVector(0, 0, 25), TEXT("SAVE"), (AActor*)0, FColor::Red, -1.0f, false);
 }
 
 void ALMSystem::Restore()
@@ -199,8 +201,7 @@ void ALMSystem::Restore()
 	FHitResult hit;
 	RenderTurtle->SetWorldTransform(TurtleInfo.Transform, false, &hit, ETeleportType::None);
 
-	DrawDebugString(GetWorld(), TurtleInfo.Transform.GetLocation() + FVector(0, 0, 30), TEXT("RESTORE"), (AActor*)0, FColor::Cyan, -1.0f, false);
-	// DrawDebugSphere(GetWorld(), TurtleInfo.Transform.GetLocation(), 20, 15, FColor::Cyan, true, -1.0, 0, 0.3f);
+	//DrawDebugString(GetWorld(), TurtleInfo.Transform.GetLocation() + FVector(0, 0, 30), TEXT("RESTORE"), (AActor*)0, FColor::Cyan, -1.0f, false);
 }
 
 // Render
@@ -300,6 +301,358 @@ void ALMSystem::RenderLSystem(FLSystem System, FRLSRenderInfo RenderInfo)
 			}
 		}
 	}
+	RenderTurtle->SetWorldTransform(this->GetActorTransform());
+	TurtleInfo.Transform = RenderTurtle->GetComponentTransform();
+}
+
+// Spline Turtle Commands
+FTransform ALMSystem::SplineMove(float length)
+{
+	// Setup Current Location
+	FVector StartPosition = RenderTurtle->GetComponentLocation();
+	FVector ForwardVector = RenderTurtle->GetComponentTransform().GetRotation().GetForwardVector();
+	FVector ForwardLength = UKismetMathLibrary::Multiply_VectorFloat(ForwardVector, length);
+	FVector FinalPosition = StartPosition + ForwardLength;
+
+	FHitResult hit;
+	// Move Turtle
+	RenderTurtle->SetWorldLocation(FinalPosition, false, &hit, ETeleportType::None);
+	TurtleInfo.Transform = RenderTurtle->GetComponentTransform();
+
+	return TurtleInfo.Transform;
+}
+
+void ALMSystem::SplineDraw(float length, int32 index)
+{
+	// Setup Current Location
+	FVector StartPosition = RenderTurtle->GetComponentLocation();
+	FVector ForwardVector = SplineMove(length).GetRotation().GetForwardVector();
+	FVector ForwardLength = UKismetMathLibrary::Multiply_VectorFloat(ForwardVector, length);
+	FVector FinalPosition = StartPosition + ForwardLength;
+
+}
+
+void ALMSystem::SplineDrawLeaf(float angle, float length)
+{
+	// Setup Current Location
+	FVector StartPosition = RenderTurtle->GetComponentLocation();
+	FVector ForwardVector = SplineMove(length).GetRotation().GetForwardVector();
+	FVector ForwardLength = UKismetMathLibrary::Multiply_VectorFloat(ForwardVector, length);
+	FVector FinalPosition = StartPosition + ForwardLength;
+
+}
+
+void ALMSystem::SplineTurnRight(float angle)
+{
+	// Move Turtle
+	FHitResult hit;
+	RenderTurtle->SetWorldTransform(FTransform(FRotator(
+		RenderTurtle->GetComponentTransform().Rotator().Pitch,
+		RenderTurtle->GetComponentTransform().Rotator().Yaw + angle,
+		RenderTurtle->GetComponentTransform().Rotator().Roll),
+		RenderTurtle->GetComponentTransform().GetLocation(),
+		RenderTurtle->GetComponentTransform().GetScale3D()),
+		false, &hit, ETeleportType::None);
+
+	TurtleInfo.Transform = RenderTurtle->GetComponentTransform();
+}
+
+void ALMSystem::SplineTurnLeft(float angle)
+{
+	// Move Turtle
+	FHitResult hit;
+	RenderTurtle->SetWorldTransform(FTransform(FRotator(
+		RenderTurtle->GetComponentTransform().Rotator().Pitch,
+		RenderTurtle->GetComponentTransform().Rotator().Yaw - angle,
+		RenderTurtle->GetComponentTransform().Rotator().Roll),
+		RenderTurtle->GetComponentTransform().GetLocation(),
+		RenderTurtle->GetComponentTransform().GetScale3D()),
+		false, &hit, ETeleportType::None);
+
+	TurtleInfo.Transform = RenderTurtle->GetComponentTransform();
+}
+
+void ALMSystem::SplineTurn180()
+{
+	SplineTurnRight(180);
+}
+
+void ALMSystem::SplinePitchUp(float angle)
+{
+	// Move Turtle
+	FHitResult hit;
+	RenderTurtle->SetWorldTransform(FTransform(FRotator(
+		RenderTurtle->GetComponentTransform().Rotator().Pitch + angle,
+		RenderTurtle->GetComponentTransform().Rotator().Yaw,
+		RenderTurtle->GetComponentTransform().Rotator().Roll),
+		RenderTurtle->GetComponentTransform().GetLocation(),
+		RenderTurtle->GetComponentTransform().GetScale3D()),
+		false, &hit, ETeleportType::None);
+
+	TurtleInfo.Transform = RenderTurtle->GetComponentTransform();
+}
+
+void ALMSystem::SplinePitchDown(float angle)
+{
+	// Move Turtle
+	FHitResult hit;
+	RenderTurtle->SetWorldTransform(FTransform(FRotator(
+		RenderTurtle->GetComponentTransform().Rotator().Pitch - angle,
+		RenderTurtle->GetComponentTransform().Rotator().Yaw,
+		RenderTurtle->GetComponentTransform().Rotator().Roll),
+		RenderTurtle->GetComponentTransform().GetLocation(),
+		RenderTurtle->GetComponentTransform().GetScale3D()),
+		false, &hit, ETeleportType::None);
+
+	TurtleInfo.Transform = RenderTurtle->GetComponentTransform();
+}
+
+void ALMSystem::SplineRollRight(float angle)
+{
+	// Move Turtle
+	FHitResult hit;
+	RenderTurtle->SetWorldTransform(FTransform(FRotator(
+		RenderTurtle->GetComponentTransform().Rotator().Pitch,
+		RenderTurtle->GetComponentTransform().Rotator().Yaw,
+		RenderTurtle->GetComponentTransform().Rotator().Roll + angle),
+		RenderTurtle->GetComponentTransform().GetLocation(),
+		RenderTurtle->GetComponentTransform().GetScale3D()),
+		false, &hit, ETeleportType::None);
+
+	TurtleInfo.Transform = RenderTurtle->GetComponentTransform();
+}
+
+void ALMSystem::SplineRollLeft(float angle)
+{
+	// Move Turtle
+	FHitResult hit;
+	RenderTurtle->SetWorldTransform(FTransform(FRotator(
+		RenderTurtle->GetComponentTransform().Rotator().Pitch,
+		RenderTurtle->GetComponentTransform().Rotator().Yaw,
+		RenderTurtle->GetComponentTransform().Rotator().Roll - angle),
+		RenderTurtle->GetComponentTransform().GetLocation(),
+		RenderTurtle->GetComponentTransform().GetScale3D()),
+		false, &hit, ETeleportType::None);
+
+	TurtleInfo.Transform = RenderTurtle->GetComponentTransform();
+}
+
+void ALMSystem::SplineSave()
+{
+	FRLSTInfo ti;
+	ti.Transform = RenderTurtle->GetComponentTransform();
+	ti.Reduction = TurtleInfo.Reduction;
+	ti.Thickness = TurtleInfo.Thickness;
+	State.Add(ti);
+
+}
+void ALMSystem::SplineRestore()
+{
+	FRLSTInfo ti;
+	ti = State.Last();
+	State.RemoveAt(State.Num() - 1, 1, true);
+
+	TurtleInfo.Transform = ti.Transform;
+	TurtleInfo.Thickness = ti.Thickness;
+	TurtleInfo.Reduction = ti.Reduction;
+
+	// Move Turtle
+	FHitResult hit;
+	RenderTurtle->SetWorldTransform(TurtleInfo.Transform, false, &hit, ETeleportType::None);
+}
+
+void ALMSystem::SetSplinePoints()
+{
+
+	/* DEPREC
+	if (State.Num() >= 1 || !SplineRenderMesh || !SplineRenderMeshMaterial)
+	{
+		for (int32 sts = 0; sts < State.Num(); ++sts)
+		{
+			SplineComponents->AddSplineLocalPoint(State[sts].Transform.GetLocation());
+		}
+		for (int32 sp = 0; sp < SplineComponents->GetNumberOfSplinePoints() - 1; ++sp)
+		{
+			//Set the color!
+			UMaterialInstanceDynamic* dynamicMat = UMaterialInstanceDynamic::Create(SplineRenderMeshMaterial, NULL);
+			dynamicMat->SetVectorParameterValue(TEXT("Color"), FLinearColor(0.5f, 0.3f, 0.1f, 1.0f));
+
+			USplineMeshComponent* SplineMesh = NewObject<USplineMeshComponent>(USplineMeshComponent::StaticClass(), FName("SplineMesh"));
+			SplineMesh->SetMobility(EComponentMobility::Movable);
+			//SplineMesh->CreationMethod = EComponentCreationMethod::UserConstructionScript;
+			//SplineMesh->AttachParent = RenderSplineComponent;
+
+			//Width of the mesh 
+			SplineMesh->SetStartScale(FVector2D(50, 50), true);
+			SplineMesh->SetEndScale(FVector2D(50, 50), true);
+
+			FVector pointLocationStart, pointTangentStart, pointLocationEnd, pointTangentEnd;
+			SplineComponent->GetLocalLocationAndTangentAtSplinePoint(sp, pointLocationStart, pointTangentStart);
+			SplineComponent->GetLocalLocationAndTangentAtSplinePoint(sp + 1, pointLocationEnd, pointTangentEnd);
+
+			SplineMesh->SetStartAndEnd(pointLocationStart, pointTangentStart, pointLocationEnd, pointTangentEnd, false);
+
+			SplineMesh->bCastDynamicShadow = false;
+			SplineMesh->SetStaticMesh(SplineRenderMesh);
+			SplineMesh->SetMaterial(0, dynamicMat);
+
+		}
+		//RegisterAllComponents();
+	} 
+	*/
+}
+
+USplineComponent* ALMSystem::CreateSplineComponent(const FTransform& Transform, const FName& AttachSocket)
+{
+	FName SplineName("CreatedSplineComponent");
+
+	//CompClass can be a BP
+	//USplineComponent* NewComp = NewObject<USplineComponent>(USplineComponent::StaticClass(), SplineName, RF_Public);
+	USplineComponent* NewComp = NewObject<USplineComponent>(this);
+	if (!NewComp)
+	{
+		return (USplineComponent*)nullptr;
+	}
+
+	//NewComp->AddToRoot();
+
+	NewComp->RegisterComponent();        //You must ConstructObject with a valid Outer that has world, see above	 
+	NewComp->SetWorldLocation(Transform.GetLocation());
+	NewComp->SetWorldRotation(Transform.GetRotation());
+	NewComp->AttachToComponent(RenderTurtle, FAttachmentTransformRules::KeepWorldTransform, NAME_None);
+	return NewComp;
+	//could use different than Root Comp
+}
+
+// SplineComponents is a TArray of USplineComponents
+// We need a new spline component for every position from a save to restore
+// We first add one spline which goes from the origin of the system until a restore takes place,
+// Restore will move the turtle and add a new spline component at the new location.
+// We Then target this new index in the TArray of USplineComponents to add points on.
+
+void ALMSystem::RenderSplineLSystem(FLSystem System, FRLSRenderInfo RenderInfo)
+{
+	int32 CurrentSplineIndex = 0;
+	SplineComponents.Empty();
+
+	USplineComponent* RootSplineTemp = CreateSplineComponent(RenderTurtle->GetComponentTransform());
+	RootSplineTemp->SetClosedLoop(false);
+	//RootSplineTemp->AddSplineLocalPoint(RenderTurtle->GetComponentTransform().GetLocation());
+	SplineComponents.Add(RootSplineTemp);
+
+	// Loop through entire string state
+	FString TempString = System.Info.States.Last();
+	for (int32 i = 0; i < TempString.Len(); ++i)
+	{
+		// loop through rules
+		for (int32 r = 0; r < RenderInfo.Rules.Num(); ++r)
+		{
+			// check if character == variable
+			if (TempString[i] == RenderInfo.Rules[r].Variable[0])
+			{
+				// loop through rules for each variable
+				for (int32 rt = 0; rt < RenderInfo.Rules[r].RuleType.Num(); ++rt)
+				{
+					// Switch on each rule from RuleType Array
+					switch (RenderInfo.Rules[r].RuleType[rt])
+					{
+					default:
+					{
+						break;
+					}
+					case ERLSRenderRuleType::LSRR_DoNothing:
+					{
+						break;
+					}
+					case ERLSRenderRuleType::LSRR_Move:
+					{
+						SplineMove(RenderInfo.Rules[r].Length);
+						break;
+					}
+					case ERLSRenderRuleType::LSRR_Draw:
+					{
+						SplineDraw(RenderInfo.Rules[r].Length, i);
+
+						// Draw then Add a new point to the current spline
+						SplineComponents[CurrentSplineIndex]->AddSplineLocalPoint(RenderTurtle->GetComponentTransform().GetLocation());
+						break;
+					}
+					case ERLSRenderRuleType::LSRR_DrawLeaf:
+					{
+						SplineDrawLeaf(RenderInfo.Rules[r].Angle, RenderInfo.Rules[r].Length);
+
+						// Draw Leaf then Add a new point to the current spline
+						SplineComponents[CurrentSplineIndex]->AddSplineLocalPoint(RenderTurtle->GetComponentTransform().GetLocation());
+						break;
+					}
+					case ERLSRenderRuleType::LSRR_TurnRight:
+					{
+						SplineTurnRight(RenderInfo.Rules[r].Angle);
+						break;
+					}
+					case ERLSRenderRuleType::LSRR_TurnLeft:
+					{
+						SplineTurnLeft(RenderInfo.Rules[r].Angle);
+						break;
+					}
+					case ERLSRenderRuleType::LSRR_Turn180:
+					{
+						SplineTurn180();
+						break;
+					}
+					case ERLSRenderRuleType::LSRR_PitchDown:
+					{
+						SplinePitchDown(RenderInfo.Rules[r].Angle);
+						break;
+					}
+					case ERLSRenderRuleType::LSRR_PitchUp:
+					{
+						SplinePitchUp(RenderInfo.Rules[r].Angle);
+						break;
+					}
+					case ERLSRenderRuleType::LSRR_RollRight:
+					{
+						SplineRollRight(RenderInfo.Rules[r].Angle);
+						break;
+					}
+					case ERLSRenderRuleType::LSRR_RollLeft:
+					{
+						SplineRollLeft(RenderInfo.Rules[r].Angle);
+						break;
+					}
+					case ERLSRenderRuleType::LSRR_Save:
+					{
+						SplineSave();
+
+						break;
+					}
+					case ERLSRenderRuleType::LSRR_Restore:
+					{
+						SplineRestore();
+
+						// Restore turtle position then start a new spline
+						USplineComponent* SplineTemp = CreateSplineComponent(RenderTurtle->GetComponentTransform());
+						SplineTemp->SetClosedLoop(false);
+
+						// Add point at restores spline index
+						//SplineTemp->AddSplineLocalPoint(RenderTurtle->GetComponentTransform().GetLocation());
+						SplineComponents.Add(SplineTemp);
+						CurrentSplineIndex = SplineComponents.Num() - 1;
+
+						break;
+					}
+					case ERLSRenderRuleType::LSRR_COUNT:
+					{
+						break;
+					}
+					}
+				}
+			}
+		}
+	}
+
+	RenderTurtle->SetWorldTransform(this->GetActorTransform());
+	TurtleInfo.Transform = RenderTurtle->GetComponentTransform();
 }
 
 // Examples
@@ -385,8 +738,6 @@ FRLSRenderInfo ALMSystem::RenderPythagorasTree()
 	FRLSRenderInfo Info;
 	Info.Rules.Add(DRule);
 	Info.Rules.Add(MRule);
-	//Info.Rules.Add(TLRule);
-	//Info.Rules.Add(TRRule);
 	Info.Rules.Add(SaveRule);
 	Info.Rules.Add(RetRule);
 
