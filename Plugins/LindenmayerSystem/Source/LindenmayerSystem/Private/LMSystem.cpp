@@ -566,12 +566,14 @@ void ALMSystem::RenderSplineLSystem(FLSystem System, FRLSRenderInfo RenderInfo)
 					}
 					case ERLSRenderRuleType::LSRR_Move:
 					{
-						SplineMove(RenderInfo.Rules[r].Length);
+						Move(RenderInfo.Rules[r].Length);
+						//SplineMove(RenderInfo.Rules[r].Length);
 						break;
 					}
 					case ERLSRenderRuleType::LSRR_Draw:
 					{
-						SplineDraw(RenderInfo.Rules[r].Length, i);
+						Draw(RenderInfo.Rules[r].Length);
+						//SplineDraw(RenderInfo.Rules[r].Length, i);
 
 						// Draw then Add a new point to the current spline
 						SplineComponents[CurrentSplineIndex]->AddSplineLocalPoint(RenderTurtle->GetComponentTransform().GetLocation());
@@ -579,7 +581,8 @@ void ALMSystem::RenderSplineLSystem(FLSystem System, FRLSRenderInfo RenderInfo)
 					}
 					case ERLSRenderRuleType::LSRR_DrawLeaf:
 					{
-						SplineDrawLeaf(RenderInfo.Rules[r].Angle, RenderInfo.Rules[r].Length);
+						DrawLeaf(RenderInfo.Rules[r].Angle, RenderInfo.Rules[r].Length);
+						//SplineDrawLeaf(RenderInfo.Rules[r].Angle, RenderInfo.Rules[r].Length);
 
 						// Draw Leaf then Add a new point to the current spline
 						SplineComponents[CurrentSplineIndex]->AddSplineLocalPoint(RenderTurtle->GetComponentTransform().GetLocation());
@@ -587,48 +590,57 @@ void ALMSystem::RenderSplineLSystem(FLSystem System, FRLSRenderInfo RenderInfo)
 					}
 					case ERLSRenderRuleType::LSRR_TurnRight:
 					{
-						SplineTurnRight(RenderInfo.Rules[r].Angle);
+						TurnRight(RenderInfo.Rules[r].Angle);
+						//SplineTurnRight(RenderInfo.Rules[r].Angle);
 						break;
 					}
 					case ERLSRenderRuleType::LSRR_TurnLeft:
 					{
-						SplineTurnLeft(RenderInfo.Rules[r].Angle);
+						TurnLeft(RenderInfo.Rules[r].Angle);
+						//SplineTurnLeft(RenderInfo.Rules[r].Angle);
 						break;
 					}
 					case ERLSRenderRuleType::LSRR_Turn180:
 					{
-						SplineTurn180();
+						Turn180();
+						//SplineTurn180();
 						break;
 					}
 					case ERLSRenderRuleType::LSRR_PitchDown:
 					{
-						SplinePitchDown(RenderInfo.Rules[r].Angle);
+						PitchDown(RenderInfo.Rules[r].Angle);
+						//SplinePitchDown(RenderInfo.Rules[r].Angle);
 						break;
 					}
 					case ERLSRenderRuleType::LSRR_PitchUp:
 					{
-						SplinePitchUp(RenderInfo.Rules[r].Angle);
+						PitchUp(RenderInfo.Rules[r].Angle);
+						//SplinePitchUp(RenderInfo.Rules[r].Angle);
 						break;
 					}
 					case ERLSRenderRuleType::LSRR_RollRight:
 					{
-						SplineRollRight(RenderInfo.Rules[r].Angle);
+						RollRight(RenderInfo.Rules[r].Angle);
+						//SplineRollRight(RenderInfo.Rules[r].Angle);
 						break;
 					}
 					case ERLSRenderRuleType::LSRR_RollLeft:
 					{
-						SplineRollLeft(RenderInfo.Rules[r].Angle);
+						RollLeft(RenderInfo.Rules[r].Angle);
+						//SplineRollLeft(RenderInfo.Rules[r].Angle);
 						break;
 					}
 					case ERLSRenderRuleType::LSRR_Save:
 					{
-						SplineSave();
+						Save();
+						//SplineSave();
 
 						break;
 					}
 					case ERLSRenderRuleType::LSRR_Restore:
 					{
-						SplineRestore();
+						Restore();
+						//SplineRestore();
 
 						// Restore turtle position then start a new spline
 						USplineComponent* SplineTemp = CreateSplineComponent(RenderTurtle->GetComponentTransform());
@@ -636,8 +648,8 @@ void ALMSystem::RenderSplineLSystem(FLSystem System, FRLSRenderInfo RenderInfo)
 
 						// Add point at restores spline index
 						//SplineTemp->AddSplineLocalPoint(RenderTurtle->GetComponentTransform().GetLocation());
-						SplineComponents.Add(SplineTemp);
-						CurrentSplineIndex = SplineComponents.Num() - 1;
+						CurrentSplineIndex = SplineComponents.Add(SplineTemp);
+						// CurrentSplineIndex = SplineComponents.Num() - 1;
 
 						break;
 					}
