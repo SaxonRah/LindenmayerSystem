@@ -2,6 +2,44 @@
 A simple C++ plugin containing everything needed to play with Lindenmayer Systems.
 Plugin was built and tested with 4.13.0
 
+# About
+	This plugin contains an LSystem component which has all the functionality of a standard lsystem.
+	It also contains a Turtle component which can parse a lsystem, and can draw, generate splines, or do anything you wish.
+	The LSystem Actor is the main class that implements everything.
+
+# Things to Add
+	Measure performance of LSystem struct. Maybe look at changing some functions by ref with const correctness
+	Expand Turtle example functions to control debug output
+	Create Turtle functions to make Spline Mesh - Done
+	Implement the procedural mesh component and do 100% procedural l system gen
+
+# Bugs
+	Generation of splines need to be made so that it can exist forever connected in construction script.
+
+# MIT LICENCE
+	MIT License
+	
+	Copyright (c) 2016 Robert Chubb
+	
+	Permission is hereby granted, free of charge, to any person obtaining a copy
+	of this software and associated documentation files (the "Software"), to deal
+	in the Software without restriction, including without limitation the rights
+	to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+	copies of the Software, and to permit persons to whom the Software is
+	furnished to do so, subject to the following conditions:
+	
+	The above copyright notice and this permission notice shall be included in all
+	copies or substantial portions of the Software.
+	
+	THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+	IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+	FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+	AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+	LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+	OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+	SOFTWARE.	
+
+
 # Blueprint Usage
 	Install plugin to game directory or engine directory.
 	Create blueprint actor based on LMSystem Actor.
@@ -23,12 +61,12 @@ Plugin was built and tested with 4.13.0
 		KochCurveInfo.Axiom = TEXT("D");
 		KochCurveInfo.AddRule(TEXT("D"), TEXT("D+D−D−D+D"));
 		
-		SetupLSystem(KochCurveInfo);
+		LSysComponent->SetupLSystem(KochCurveInfo);
 		
 		// Will grow by KochCurveInfo.Generations
-		GrowLSystem();
+		LSysComponent->GrowLSystem();
 		// Will grow by given generation parameter
-		GrowLSystemBy(6);
+		LSysComponent->GrowLSystemBy(6);
 	
 ## Render LSystem Setup and Rendering
 		// We use an array of rules to give users the ability to have multiple commands per variable.
@@ -78,47 +116,39 @@ Plugin was built and tested with 4.13.0
 					Information about the LSystem
 		
 ## TurtleComponent . h/cpp
+	TurtleComponent is a USceneComponent based component, which parses a string and issues commands based on rules
+		TArray<FRLSTInfo> State;
+		FRLSRenderInfo LSystemRenderInfo;
+		RLSTInfo TurtleInfo;
+		
+		// Turtle Commands
+			FTransform Move(float length);
+			Draw(float length);
+			DrawLeaf(float angle, float length);
+			TurnRight(float angle);
+			TurnLeft(float angle);
+			Turn180();
+			PitchUp(float angle);
+			PitchDown(float angle);
+			RollRight(float angle);
+			RollLeft(float angle);
+			Save();
+			Restore();
+			
 ## ALMSystem.h/cpp
 		ALMSystem is a LSystem Actor that has a pet turtle component which has magical drawing powers.
 		It also has the LSystemComponent for the functionality.
-		It contains several structures helping facilitate LSystems.
+		It procedurally generates splines to draw the lsystem.
 			
 		
 ## RenderLSystem.h
 		RenderLSystem is contains structures to help rendering.
-			FRLSTInfo is a structure containing information about the turtle's transform.
-			ERLSRenderRuleType is an enum containing all the different turtle commands.
-			FRLSRenderRule contains a string variable and an array of associated turtle commands.
-			FRLSRenderInfo contains an array of rules for the rendering.
+			FRLSTInfo		- UStruct
+				Information about the turtle's transform and drawing commands
+			ERLSRenderRuleType	- Enum
+				Contains all the different turtle commands.
+			FRLSRenderRule 		- UStruct
+				Variable and an array of associated turtle commands.
+			FRLSRenderInfo 		- TArray of FRLSRenderRules
+				Information for the rendering.
 
-# Things to Add
-	Measure performance of LSystem struct. Maybe look at changing some functions by ref with const correctness
-	Expand Turtle example functions to control debug output
-	Create Turtle functions to make Spline Mesh - Done
-	Implement the procedural mesh component and do 100% procedural l system gen
-
-# Bugs
-	Generation of splines need to be made so that it can exist forever connected in construction script.
-
-# MIT LICENCE
-	MIT License
-	
-	Copyright (c) 2016 Robert Chubb
-	
-	Permission is hereby granted, free of charge, to any person obtaining a copy
-	of this software and associated documentation files (the "Software"), to deal
-	in the Software without restriction, including without limitation the rights
-	to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-	copies of the Software, and to permit persons to whom the Software is
-	furnished to do so, subject to the following conditions:
-	
-	The above copyright notice and this permission notice shall be included in all
-	copies or substantial portions of the Software.
-	
-	THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-	IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-	FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-	AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-	LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-	OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-	SOFTWARE.	
