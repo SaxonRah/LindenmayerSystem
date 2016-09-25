@@ -2,8 +2,8 @@
 	A simple C++ plugin for Unreal Engine 4 containing everything needed to play with Lindenmayer Systems.
 	Plugin was built and tested with 4.13.0
 	
-![ScreenShot](/screenshots/ProceduralSpline.png)
-![ScreenShot](/screenshots/ProceduralSpline2.png)
+![ScreenShot](/Screenshots/ProceduralSpline.png)
+![ScreenShot](/Screenshots/ProceduralSpline2.png)
 
 # About
 	This plugin contains an LSystem component which has all the functionality of a standard lsystem.
