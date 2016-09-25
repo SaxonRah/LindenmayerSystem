@@ -1,5 +1,5 @@
 # LindenmayerSystem
-	A simple C++ plugin containing everything needed to play with Lindenmayer Systems.
+	A simple C++ plugin for Unreal Engine 4 containing everything needed to play with Lindenmayer Systems.
 	Plugin was built and tested with 4.13.0
 
 # About
@@ -8,7 +8,7 @@
 	or do anything you wish. The LSystem Actor is the main class that implements everything.
 
 # Things to Add
-	Measure performance of LSystem struct. Maybe look at changing some functions by ref with const correctness
+	Measure performance of LSystem struct. Maybe look at by ref and const correctness
 	Expand Turtle example functions to control debug output
 	Create Turtle functions to make Spline Mesh - Done
 	Implement the procedural mesh component and do 100% procedural l system gen
