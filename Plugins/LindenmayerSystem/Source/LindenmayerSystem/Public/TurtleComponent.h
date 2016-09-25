@@ -43,17 +43,17 @@ public:
 	void Save();
 	void Restore();
 
-	// Spline Not used 
-	FTransform SplineMove(float length);
-	void SplineDraw(float length, int32 index);
-	void SplineDrawLeaf(float angle, float length);
-	void SplineTurnRight(float angle);
-	void SplineTurnLeft(float angle);
-	void SplineTurn180();
-	void SplinePitchUp(float angle);
-	void SplinePitchDown(float angle);
-	void SplineRollRight(float angle);
-	void SplineRollLeft(float angle);
-	void SplineSave();
-	void SplineRestore();
+	// Debug
+	void DebugMove(float length);
+	void DebugDraw(float length);
+	void DebugDrawLeaf(float angle, float length);
+	void DebugTurnRight(float angle);
+	void DebugTurnLeft(float angle);
+	void DebugTurn180();
+	void DebugPitchUp(float angle);
+	void DebugPitchDown(float angle);
+	void DebugRollRight(float angle);
+	void DebugRollLeft(float angle);
+	void DebugSave();
+	void DebugRestore();
 };
