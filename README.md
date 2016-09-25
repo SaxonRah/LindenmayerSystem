@@ -58,12 +58,31 @@ Plugin was built and tested with 4.13.0
 		
 
 # C++ Heierarchy
+## LSystemComponent . h/cpp
+	The component where all the string rewriting happens. Has several example l systems.
+		FLSRule			- UStruct
+			Rule for a letter
+		FLSInfo			- UStruct
+			Information about the LSystem
+				Generations	- Int32
+					Times to iterate.
+				Axiom 		- FString
+					Starting string.
+				Rules		- TArray of FLSRules
+					Collection of Rules.
+				States		- TArray of FStrings
+					History of LSystem Generations
+		FLSystem		- UStruct
+			The LSystem itself.
+				FLSInfo		- UStruct
+					Information about the LSystem
+		
+## TurtleComponent . h/cpp
 ## ALMSystem.h/cpp
-		ALMSystem is a LSystem Actor that has a pet turtle which has magical drawing powers.
-		It also has several example LSystems. It contains several structures helping facilitate LSystems.
-			FLSRule
-			FLSInfo
-			FLSystem
+		ALMSystem is a LSystem Actor that has a pet turtle component which has magical drawing powers.
+		It also has the LSystemComponent for the functionality.
+		It contains several structures helping facilitate LSystems.
+			
 		
 ## RenderLSystem.h
 		RenderLSystem is contains structures to help rendering.
@@ -75,11 +94,11 @@ Plugin was built and tested with 4.13.0
 # Things to Add
 	Measure performance of LSystem struct. Maybe look at changing some functions by ref with const correctness
 	Expand Turtle example functions to control debug output
-	Create Turtle functions to make Spline Mesh
+	Create Turtle functions to make Spline Mesh - Done
 	Implement the procedural mesh component and do 100% procedural l system gen
 
 # Bugs
-	Rotating the parent Actor of turtle in Y Axis bends turtle movement up and down.
+	Generation of splines need to be made so that it can exist forever connected in construction script.
 
 # MIT LICENCE
 	MIT License
