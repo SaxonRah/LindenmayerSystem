@@ -4,8 +4,8 @@ Plugin was built and tested with 4.13.0
 
 # About
 	This plugin contains an LSystem component which has all the functionality of a standard lsystem.
-	It also contains a Turtle component which can parse a lsystem, and can draw, generate splines, or do anything you wish.
-	The LSystem Actor is the main class that implements everything.
+	It also contains a Turtle component which can parse a lsystem, and can draw, generate splines, 
+	or do anything you wish. The LSystem Actor is the main class that implements everything.
 
 # Things to Add
 	Measure performance of LSystem struct. Maybe look at changing some functions by ref with const correctness
@@ -15,30 +15,6 @@ Plugin was built and tested with 4.13.0
 
 # Bugs
 	Generation of splines need to be made so that it can exist forever connected in construction script.
-
-# MIT LICENCE
-	MIT License
-	
-	Copyright (c) 2016 Robert Chubb
-	
-	Permission is hereby granted, free of charge, to any person obtaining a copy
-	of this software and associated documentation files (the "Software"), to deal
-	in the Software without restriction, including without limitation the rights
-	to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-	copies of the Software, and to permit persons to whom the Software is
-	furnished to do so, subject to the following conditions:
-	
-	The above copyright notice and this permission notice shall be included in all
-	copies or substantial portions of the Software.
-	
-	THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-	IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-	FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-	AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-	LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-	OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-	SOFTWARE.	
-
 
 # Blueprint Usage
 	Install plugin to game directory or engine directory.
@@ -152,3 +128,25 @@ Plugin was built and tested with 4.13.0
 			FRLSRenderInfo 		- TArray of FRLSRenderRules
 				Information for the rendering.
 
+# MIT LICENCE
+	MIT License
+	
+	Copyright (c) 2016 Robert Chubb
+	
+	Permission is hereby granted, free of charge, to any person obtaining a copy
+	of this software and associated documentation files (the "Software"), to deal
+	in the Software without restriction, including without limitation the rights
+	to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+	copies of the Software, and to permit persons to whom the Software is
+	furnished to do so, subject to the following conditions:
+	
+	The above copyright notice and this permission notice shall be included in all
+	copies or substantial portions of the Software.
+	
+	THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+	IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+	FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+	AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+	LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+	OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+	SOFTWARE.	
