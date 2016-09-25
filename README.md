@@ -1,6 +1,6 @@
 # LindenmayerSystem
-A simple C++ plugin containing everything needed to play with Lindenmayer Systems.
-Plugin was built and tested with 4.13.0
+	A simple C++ plugin containing everything needed to play with Lindenmayer Systems.
+	Plugin was built and tested with 4.13.0
 
 # About
 	This plugin contains an LSystem component which has all the functionality of a standard lsystem.
