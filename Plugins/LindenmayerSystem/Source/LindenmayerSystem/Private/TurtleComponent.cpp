@@ -71,10 +71,6 @@ FTransform UTurtleComponent::Move(float length)
 								TEXT(" ] Y : [ ") + FString::SanitizeFloat(hitForward.ImpactPoint.Y) +
 								TEXT(" ] Z : [ ") + FString::SanitizeFloat(hitForward.ImpactPoint.Z));
 
-		DrawDebugString(GetWorld(), hitForward.Location + FVector(0, 0, 0), temp, (AActor*)0, FColor::Red, -1.0f, false);
-		//Print out distance from start of trace to impact point
-		DrawDebugString(GetWorld(), hitForward.Location + FVector(0, 0, 0), "Trace Distance: " + FString::SanitizeFloat(hitForward.Distance), (AActor*)0, FColor::Red, -1.0f, false);
-
 		// Move Turtle To Hit
 		this->SetWorldTransform(GetSurfaceTransformFromHit(hitForward.ImpactPoint, hitForward.ImpactNormal), false, &hit, ETeleportType::None);
 	}
@@ -91,12 +87,13 @@ FTransform UTurtleComponent::Move(float length)
 				TEXT(" ] Y : [ ") + FString::SanitizeFloat(hitUp.ImpactPoint.Y) +
 				TEXT(" ] Z : [ ") + FString::SanitizeFloat(hitUp.ImpactPoint.Z));
 
-			DrawDebugString(GetWorld(), hitUp.Location + FVector(0, 0, 0), temp, (AActor*)0, FColor::Red, -1.0f, false);
-			//Print out distance from start of trace to impact point
-			DrawDebugString(GetWorld(), hitUp.Location + FVector(0, 0, 0), "Trace Distance: " + FString::SanitizeFloat(hitUp.Distance), (AActor*)0, FColor::Red, -1.0f, false);
-
 			// Move Turtle To Hit
 			this->SetWorldTransform(GetSurfaceTransformFromHit(hitUp.ImpactPoint, hitUp.ImpactNormal), false, &hit, ETeleportType::None);
+		}
+		else
+		{
+			// Move Turtle To final Forward
+			this->SetWorldLocation(FinalPositionForward, false, &hit, ETeleportType::None);
 		}
 	}
 	TurtleInfo.Transform = this->GetComponentTransform();
