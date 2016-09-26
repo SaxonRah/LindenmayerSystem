@@ -8,7 +8,7 @@ ALMSystem::ALMSystem(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
 	// Generations 
-	Generations = 3;
+	Generations = 2;
 	// Create and Set our root as the RootComponent
 	RootComp = ObjectInitializer.CreateDefaultSubobject<USceneComponent>(this, TEXT("Root Component"));
 	RootComp->SetMobility(EComponentMobility::Static);

@@ -18,7 +18,7 @@ public:
 	// Boilerplate
 	ALMSystem(const FObjectInitializer& ObjectInitializer);
 
-	UPROPERTY(meta = (ClampMin = 0, ClampMax = 10), EditAnywhere, BlueprintReadWrite, Category = "Default")
+	UPROPERTY(meta = (ClampMin = 0, ClampMax = 6), EditAnywhere, BlueprintReadWrite, Category = "Default")
 		int32 Generations;
 
 	// Components

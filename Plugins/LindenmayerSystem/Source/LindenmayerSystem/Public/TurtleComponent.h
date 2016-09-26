@@ -7,6 +7,83 @@
 #include "TurtleComponent.generated.h"
 
 
+static FORCEINLINE bool Trace(
+	UWorld* World,
+	AActor* ActorToIgnore,
+	const FVector& Start,
+	const FVector& End,
+	FHitResult& HitOut,
+	ECollisionChannel CollisionChannel = ECC_Pawn,
+	bool ReturnPhysMat = false
+) {
+	if (!World)
+	{
+		return false;
+	}
+
+	FCollisionQueryParams TraceParams(FName(TEXT("Trace")), true, ActorToIgnore);
+	TraceParams.bTraceComplex = true;
+	//TraceParams.bTraceAsyncScene = true;
+	TraceParams.bReturnPhysicalMaterial = ReturnPhysMat;
+
+	//Ignore Actors
+	TraceParams.AddIgnoredActor(ActorToIgnore);
+
+	//Re-initialize hit info
+	HitOut = FHitResult(ForceInit);
+
+	//Trace!
+	World->LineTraceSingleByChannel(
+		HitOut,		//result
+		Start,	//start
+		End, //end
+		CollisionChannel, //collision channel
+		TraceParams
+	);
+
+	//Hit any Actor?
+	return (HitOut.GetActor() != NULL);
+}
+
+//Trace with an Array of Actors to Ignore
+//   Ignore as many actors as you want!
+static FORCEINLINE bool Trace(
+	UWorld* World,
+	TArray<AActor*>& ActorsToIgnore,
+	const FVector& Start,
+	const FVector& End,
+	FHitResult& HitOut,
+	ECollisionChannel CollisionChannel = ECC_Pawn,
+	bool ReturnPhysMat = false
+) {
+	if (!World)
+	{
+		return false;
+	}
+
+	FCollisionQueryParams TraceParams(FName(TEXT("Trace")), true, ActorsToIgnore[0]);
+	TraceParams.bTraceComplex = true;
+
+	//TraceParams.bTraceAsyncScene = true;
+	TraceParams.bReturnPhysicalMaterial = ReturnPhysMat;
+
+	//Ignore Actors
+	TraceParams.AddIgnoredActors(ActorsToIgnore);
+
+	//Re-initialize hit info
+	HitOut = FHitResult(ForceInit);
+
+	World->LineTraceSingleByChannel(
+		HitOut,		//result
+		Start,	//start
+		End, //end
+		CollisionChannel, //collision channel
+		TraceParams
+	);
+
+	return (HitOut.GetActor() != NULL);
+}
+
 UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
 class LINDENMAYERSYSTEM_API UTurtleComponent : public USceneComponent
 {
@@ -28,6 +105,8 @@ public:
 		FRLSRenderInfo LSystemRenderInfo;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "LSystem|Render")
 		FRLSTInfo TurtleInfo;
+
+	FTransform GetSurfaceTransformFromHit(FVector ImpactPoint, FVector HitNormal);
 
 	// Turtle Rendering and Info
 	FTransform Move(float length);
