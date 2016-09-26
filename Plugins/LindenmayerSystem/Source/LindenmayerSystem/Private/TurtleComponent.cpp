@@ -39,9 +39,10 @@ FTransform UTurtleComponent::GetSurfaceTransformFromHit(FVector ImpactPoint, FVe
 {
 	FTransform temp;
 	FVector TempHitNormal = UKismetMathLibrary::Multiply_VectorFloat(HitNormal, -1);
+	
 	temp.SetLocation(ImpactPoint + HitNormal);
-	temp.SetRotation(FQuat(UKismetMathLibrary::MakeRotFromYZ(this->GetRightVector(), TempHitNormal)));
-	temp.SetScale3D(this->GetComponentScale());
+	temp.SetRotation(FQuat(UKismetMathLibrary::MakeRotFromYZ(GetRightVector(), TempHitNormal)));
+	temp.SetScale3D(GetComponentScale());
 	return temp;
 }
 
@@ -50,53 +51,50 @@ FTransform UTurtleComponent::GetSurfaceTransformFromHit(FVector ImpactPoint, FVe
 FTransform UTurtleComponent::Move(float length)
 {
 	// Setup Current Location
-	FVector StartPosition = this->GetComponentLocation();
-	FVector ForwardVector = this->GetComponentTransform().GetRotation().GetForwardVector();
+	FVector TempHitNormal;
+	FVector StartPosition = GetComponentLocation();
+	FVector ForwardVector = GetComponentTransform().GetRotation().GetForwardVector();
 	FVector ForwardLength = UKismetMathLibrary::Multiply_VectorFloat(ForwardVector, length);
-	FVector UpVector = this->GetComponentTransform().GetRotation().GetUpVector();
+	FVector UpVector = GetComponentTransform().GetRotation().GetUpVector();
 	FVector UpLength = UKismetMathLibrary::Multiply_VectorFloat(UpVector, length);
 	FVector FinalPositionForward = StartPosition + ForwardLength;
 	FVector FinalPositionDown = StartPosition + UpLength;
+	FTransform TempFinalTransform;
 
 	//Actor to Ignore
-	AActor* ActorToIgnore = this->GetOwner();
+	AActor* ActorToIgnore = GetOwner();
 
 	FHitResult hitForward(ForceInit), hitUp(ForceInit);
 	FHitResult hit(ForceInit);
+
 	// Trace move before move, if path is not clear set transform based on trace hit
 	//If Trace Hits anything
 	if (Trace(GetWorld(), ActorToIgnore, StartPosition, FinalPositionForward, hitForward))
 	{
-		FString temp = FString(TEXT("Impact Point - X : [ ") + FString::SanitizeFloat(hitForward.ImpactPoint.X) +
-								TEXT(" ] Y : [ ") + FString::SanitizeFloat(hitForward.ImpactPoint.Y) +
-								TEXT(" ] Z : [ ") + FString::SanitizeFloat(hitForward.ImpactPoint.Z));
-
+		TempFinalTransform = GetSurfaceTransformFromHit(hitForward.ImpactPoint, hitForward.ImpactNormal);
 		// Move Turtle To Hit
-		this->SetWorldTransform(GetSurfaceTransformFromHit(hitForward.ImpactPoint, hitForward.ImpactNormal), false, &hit, ETeleportType::None);
+		SetWorldTransform(TempFinalTransform, false, &hit, ETeleportType::None);
 	}
 	else
 	{
 		// Move Turtle To final Forward
-		this->SetWorldLocation(FinalPositionForward, false, &hit, ETeleportType::None);
+		SetWorldLocation(hitForward.TraceEnd, false, &hit, ETeleportType::None);
 
 			// otherwise if path is clear set transform on final location and trace down 
 		//If Trace Hits anything	
 		if (Trace(GetWorld(), ActorToIgnore, StartPosition, FinalPositionDown, hitUp))
 		{
-			FString temp = FString(TEXT("Impact Point - X : [ ") + FString::SanitizeFloat(hitUp.ImpactPoint.X) +
-				TEXT(" ] Y : [ ") + FString::SanitizeFloat(hitUp.ImpactPoint.Y) +
-				TEXT(" ] Z : [ ") + FString::SanitizeFloat(hitUp.ImpactPoint.Z));
-
+			TempFinalTransform = GetSurfaceTransformFromHit(hitUp.ImpactPoint, hitUp.ImpactNormal);
 			// Move Turtle To Hit
-			this->SetWorldTransform(GetSurfaceTransformFromHit(hitUp.ImpactPoint, hitUp.ImpactNormal), false, &hit, ETeleportType::None);
+			SetWorldTransform(TempFinalTransform, false, &hit, ETeleportType::None);
 		}
 		else
 		{
 			// Move Turtle To final Forward
-			this->SetWorldLocation(FinalPositionForward, false, &hit, ETeleportType::None);
+			//SetWorldLocation(hitUp.TraceEnd, false, &hit, ETeleportType::None);
 		}
 	}
-	TurtleInfo.Transform = this->GetComponentTransform();
+	TurtleInfo.Transform = GetComponentTransform();
 	return TurtleInfo.Transform;
 }
 
@@ -114,15 +112,15 @@ void UTurtleComponent::TurnRight(float angle)
 {
 	// Move Turtle
 	FHitResult hit(ForceInit);
-	this->SetWorldTransform(FTransform(FRotator(
-		this->GetComponentTransform().Rotator().Pitch,
-		this->GetComponentTransform().Rotator().Yaw + angle,
-		this->GetComponentTransform().Rotator().Roll),
-		this->GetComponentTransform().GetLocation(),
-		this->GetComponentTransform().GetScale3D()),
+	SetWorldTransform(FTransform(FRotator(
+		GetComponentTransform().Rotator().Pitch,
+		GetComponentTransform().Rotator().Yaw + angle,
+		GetComponentTransform().Rotator().Roll),
+		GetComponentTransform().GetLocation(),
+		GetComponentTransform().GetScale3D()),
 		false, &hit, ETeleportType::None);
 
-	TurtleInfo.Transform = this->GetComponentTransform();
+	TurtleInfo.Transform = GetComponentTransform();
 }
 
 void UTurtleComponent::TurnLeft(float angle)
@@ -130,15 +128,15 @@ void UTurtleComponent::TurnLeft(float angle)
 	// Pitch Yaw Roll
 	// Move Turtle
 	FHitResult hit(ForceInit);
-	this->SetWorldTransform(FTransform(FRotator(
-		this->GetComponentTransform().Rotator().Pitch,
-		this->GetComponentTransform().Rotator().Yaw - angle,
-		this->GetComponentTransform().Rotator().Roll),
-		this->GetComponentTransform().GetLocation(),
-		this->GetComponentTransform().GetScale3D()),
+	SetWorldTransform(FTransform(FRotator(
+		GetComponentTransform().Rotator().Pitch,
+		GetComponentTransform().Rotator().Yaw - angle,
+		GetComponentTransform().Rotator().Roll),
+		GetComponentTransform().GetLocation(),
+		GetComponentTransform().GetScale3D()),
 		false, &hit, ETeleportType::None);
 
-	TurtleInfo.Transform = this->GetComponentTransform();
+	TurtleInfo.Transform = GetComponentTransform();
 }
 
 void UTurtleComponent::Turn180()
@@ -150,66 +148,66 @@ void UTurtleComponent::PitchUp(float angle)
 {
 	// Move Turtle
 	FHitResult hit(ForceInit);
-	this->SetWorldTransform(FTransform(FRotator(
-		this->GetComponentTransform().Rotator().Pitch + angle,
-		this->GetComponentTransform().Rotator().Yaw,
-		this->GetComponentTransform().Rotator().Roll),
-		this->GetComponentTransform().GetLocation(),
-		this->GetComponentTransform().GetScale3D()),
+	SetWorldTransform(FTransform(FRotator(
+		GetComponentTransform().Rotator().Pitch + angle,
+		GetComponentTransform().Rotator().Yaw,
+		GetComponentTransform().Rotator().Roll),
+		GetComponentTransform().GetLocation(),
+		GetComponentTransform().GetScale3D()),
 		false, &hit, ETeleportType::None);
 
-	TurtleInfo.Transform = this->GetComponentTransform();
+	TurtleInfo.Transform = GetComponentTransform();
 }
 
 void UTurtleComponent::PitchDown(float angle)
 {
 	// Move Turtle
 	FHitResult hit(ForceInit);
-	this->SetWorldTransform(FTransform(FRotator(
-		this->GetComponentTransform().Rotator().Pitch - angle,
-		this->GetComponentTransform().Rotator().Yaw,
-		this->GetComponentTransform().Rotator().Roll),
-		this->GetComponentTransform().GetLocation(),
-		this->GetComponentTransform().GetScale3D()),
+	SetWorldTransform(FTransform(FRotator(
+		GetComponentTransform().Rotator().Pitch - angle,
+		GetComponentTransform().Rotator().Yaw,
+		GetComponentTransform().Rotator().Roll),
+		GetComponentTransform().GetLocation(),
+		GetComponentTransform().GetScale3D()),
 		false, &hit, ETeleportType::None);
 
-	TurtleInfo.Transform = this->GetComponentTransform();
+	TurtleInfo.Transform = GetComponentTransform();
 }
 
 void UTurtleComponent::RollRight(float angle)
 {
 	// Move Turtle
 	FHitResult hit(ForceInit);
-	this->SetWorldTransform(FTransform(FRotator(
-		this->GetComponentTransform().Rotator().Pitch,
-		this->GetComponentTransform().Rotator().Yaw,
-		this->GetComponentTransform().Rotator().Roll + angle),
-		this->GetComponentTransform().GetLocation(),
-		this->GetComponentTransform().GetScale3D()),
+	SetWorldTransform(FTransform(FRotator(
+		GetComponentTransform().Rotator().Pitch,
+		GetComponentTransform().Rotator().Yaw,
+		GetComponentTransform().Rotator().Roll + angle),
+		GetComponentTransform().GetLocation(),
+		GetComponentTransform().GetScale3D()),
 		false, &hit, ETeleportType::None);
 
-	TurtleInfo.Transform = this->GetComponentTransform();
+	TurtleInfo.Transform = GetComponentTransform();
 }
 
 void UTurtleComponent::RollLeft(float angle)
 {
 	// Move Turtle
 	FHitResult hit(ForceInit);
-	this->SetWorldTransform(FTransform(FRotator(
-		this->GetComponentTransform().Rotator().Pitch,
-		this->GetComponentTransform().Rotator().Yaw,
-		this->GetComponentTransform().Rotator().Roll - angle),
-		this->GetComponentTransform().GetLocation(),
-		this->GetComponentTransform().GetScale3D()),
+	SetWorldTransform(FTransform(FRotator(
+		GetComponentTransform().Rotator().Pitch,
+		GetComponentTransform().Rotator().Yaw,
+		GetComponentTransform().Rotator().Roll - angle),
+		GetComponentTransform().GetLocation(),
+		GetComponentTransform().GetScale3D()),
 		false, &hit, ETeleportType::None);
 
-	TurtleInfo.Transform = this->GetComponentTransform();
+	TurtleInfo.Transform = GetComponentTransform();
 }
 
 void UTurtleComponent::Save()
 {
 	FRLSTInfo ti;
-	ti.Transform = this->GetComponentTransform();
+	ti.Transform = GetComponentTransform();
 	ti.Reduction = TurtleInfo.Reduction;
 	ti.Thickness = TurtleInfo.Thickness;
 
@@ -228,7 +226,7 @@ void UTurtleComponent::Restore()
 
 	// Move Turtle
 	FHitResult hit(ForceInit);
-	this->SetWorldTransform(TurtleInfo.Transform, false, &hit, ETeleportType::None);
+	SetWorldTransform(TurtleInfo.Transform, false, &hit, ETeleportType::None);
 }
 //////////////////////////////////////////////////////////////////////////
 
@@ -273,7 +271,7 @@ void UTurtleComponent::DebugDrawLeaf(float angle, float length)
 	FColor lineColor(139, 69, 19), leafColor(34, 139, 34);
 
 	DrawDebugLine(GetWorld(), StartPosition, FinalPosition, lineColor, false, 10.0, 0, 3.0f);
-	DrawDebugAltCone(GetWorld(), FinalPosition, this->GetComponentTransform().Rotator(), length * 1.5, angle, (angle + (length / 2)), leafColor, false, 10.0, 0, 3.0f);
+	DrawDebugAltCone(GetWorld(), FinalPosition, GetComponentTransform().Rotator(), length * 1.5, angle, (angle + (length / 2)), leafColor, false, 10.0, 0, 3.0f);
 	DrawDebugString(GetWorld(), TurtleInfo.Transform.GetLocation() + FVector(0, 0, -20), TEXT("Draw Leaf : ") + FString().SanitizeFloat(length), (AActor*)0, leafColor, -1.0f, false);
 }
 
