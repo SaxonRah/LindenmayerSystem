@@ -134,8 +134,9 @@ public:
 
 		for (int32 ruleCounter = 0; ruleCounter < Info.Rules.Num(); ++ruleCounter)
 		{
-			if (Info.Rules[ruleCounter].IsVariableAMatch(variable))
-				return Info.Rules[ruleCounter].GetReplacement();
+			auto TempVar = Info.Rules[ruleCounter];
+			if (TempVar.IsVariableAMatch(variable))
+				return TempVar.GetReplacement();
 		}
 
 		ReplacementString.Append(variable);
