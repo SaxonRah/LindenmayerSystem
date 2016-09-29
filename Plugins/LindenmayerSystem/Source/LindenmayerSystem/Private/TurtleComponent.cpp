@@ -34,6 +34,7 @@ void UTurtleComponent::TickComponent( float DeltaTime, ELevelTick TickType, FAct
 }
 //////////////////////////////////////////////////////////////////////////
 
+//////////////////////////////////////////////////////////////////////////
 
 FTransform UTurtleComponent::GetSurfaceTransformFromHit(FVector ImpactPoint, FVector HitNormal)
 {
@@ -41,7 +42,7 @@ FTransform UTurtleComponent::GetSurfaceTransformFromHit(FVector ImpactPoint, FVe
 	FVector TempHitNormal = UKismetMathLibrary::Multiply_VectorFloat(HitNormal, -1);
 	
 	temp.SetLocation(ImpactPoint + HitNormal);
-	temp.SetRotation(FQuat(UKismetMathLibrary::MakeRotFromYZ(GetRightVector(), TempHitNormal)));
+	temp.SetRotation(FQuat(UKismetMathLibrary::MakeRotFromYZ(GetComponentTransform().GetRotation().GetRightVector(), TempHitNormal)));
 	temp.SetScale3D(GetComponentScale());
 	return temp;
 }
@@ -58,7 +59,7 @@ FTransform UTurtleComponent::Move(float length)
 	FVector ForwardLength	= UKismetMathLibrary::Multiply_VectorFloat(ForwardVector, length);
 	FVector UpLength		= UKismetMathLibrary::Multiply_VectorFloat(UpVector, length);
 	FVector FinalPosForward = StartPosition + ForwardLength;
-	FVector FinalPosDown	= StartPosition + UpLength;
+	FVector FinalPosDown	= StartPosition - UpLength;
 	FTransform TempFinalTransform;
 
 	FVector TempHitNormal;
@@ -68,7 +69,7 @@ FTransform UTurtleComponent::Move(float length)
 	//Actor to Ignore
 	AActor* ActorToIgnore = GetOwner();
 
-	FHitResult hitForward(ForceInit), hitUp(ForceInit);
+	FHitResult hitForward(ForceInit), hitDown(ForceInit);
 	FHitResult hit(ForceInit);
 
 	// Trace move before move, if path is not clear set transform based on trace hit
@@ -82,20 +83,22 @@ FTransform UTurtleComponent::Move(float length)
 	else
 	{
 		// Move Turtle To final Forward
-		SetWorldLocation(hitForward.TraceEnd, false, &hit, TeleType);
+		//SetWorldLocation(hitForward.TraceEnd, false, &hit, TeleType);
+		SetWorldLocation(FinalPosForward, false, &hit, TeleType);
 
-			// otherwise if path is clear set transform on final location and trace down 
+		// otherwise if path is clear set transform on final location and trace down 
 		//If Trace Hits anything	
-		if (Trace(GetWorld(), ActorToIgnore, StartPosition, FinalPosDown, hitUp))
+		if (Trace(GetWorld(), ActorToIgnore, StartPosition, FinalPosDown, hitDown))
 		{
-			TempFinalTransform = GetSurfaceTransformFromHit(hitUp.ImpactPoint, hitUp.ImpactNormal);
+			TempFinalTransform = GetSurfaceTransformFromHit(hitDown.ImpactPoint, hitDown.ImpactNormal);
 			// Move Turtle To Hit
 			SetWorldTransform(TempFinalTransform, false, &hit, TeleType);
 		}
 		else
 		{
-			// Move Turtle To final Forward
+			// Move Turtle To final down
 			//SetWorldLocation(hitUp.TraceEnd, false, &hit, TeleType);
+			//SetWorldLocation(FinalPosDown, false, &hit, TeleType);
 		}
 	}
 	TurtleInfo.Transform = GetComponentTransform();

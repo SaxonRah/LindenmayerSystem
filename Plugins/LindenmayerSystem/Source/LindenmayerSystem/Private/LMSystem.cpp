@@ -11,7 +11,7 @@ ALMSystem::ALMSystem(const FObjectInitializer& ObjectInitializer)
 	Generations = 2;
 	// Create and Set our root as the RootComponent
 	RootComp = ObjectInitializer.CreateDefaultSubobject<USceneComponent>(this, TEXT("Root Component"));
-	RootComp->SetMobility(EComponentMobility::Static);
+	RootComp->SetMobility(EComponentMobility::Movable);
 	RootComponent = RootComp;
 
 	// Create LSystem Component
@@ -21,32 +21,38 @@ ALMSystem::ALMSystem(const FObjectInitializer& ObjectInitializer)
 	TurtleComp = ObjectInitializer.CreateDefaultSubobject<UTurtleComponent>(this, TEXT("Turtle Component"));
 	TurtleComp->SetMobility(EComponentMobility::Movable);
 
-	TurtleComp->SetWorldTransform(this->GetActorTransform());
+
+	TurtleComp->ResetRelativeTransform();
+	//TurtleComp->SetWorldTransform(this->GetActorTransform());
 	TurtleComp->TurtleInfo.Transform = TurtleComp->GetComponentTransform();
 };
 
 void ALMSystem::ClearSplineSystem()
 {
 	// Clean up Spline Components 
-	for (int32 sc = 0; sc < SplineComponents.Num(); ++sc)
+	// for (int32 sc = 0; sc < SplineComponents.Num(); ++sc)
+	for (int32 sc = SplineComponents.Num() - 1; sc > -1; --sc)
 	{
 		SplineComponents[sc]->DestroyComponent(false);
 	}
 	SplineComponents.Empty();
 
 	// Clean up Spline Mesh Components 
-	for (int32 smc = 0; smc < SplineMeshComponents.Num(); ++smc)
+	// for (int32 smc = 0; smc < SplineMeshComponents.Num(); ++smc)
+	for (int32 smc = SplineMeshComponents.Num() - 1; smc > -1; --smc)
 	{
 		SplineMeshComponents[smc]->DestroyComponent(false);
 	}
 	SplineMeshComponents.Empty();
 
 	// Clean up Materials 
-	for (int32 m = 0; m < Materials.Num(); ++m)
+	// for (int32 m = 0; m < Materials.Num(); ++m)
+	for (int32 m = Materials.Num() - 1; m > -1; --m)
 	{
 		Materials[m]->MarkPendingKill();
 	}
 	Materials.Empty();
+
 }
 
 void ALMSystem::ClearDebugRender()
@@ -86,12 +92,12 @@ void ALMSystem::RenderSplineLSystem(FLSystem System, FRLSRenderInfo RenderInfo)
 
 	// Create, Setup and Add Component to Array
 	USplineComponent* RootSplineTemp;
-	FTransform Temp = TurtleComp->GetComponentTransform();
-	RootSplineTemp = (USplineComponent*)CreateProceduralComponent(USplineComponent::StaticClass(), Temp);
+	FTransform TempTransform = TurtleComp->GetComponentTransform();
+	RootSplineTemp = (USplineComponent*)CreateProceduralComponent(USplineComponent::StaticClass(), TempTransform);
 	RootSplineTemp->SetClosedLoop(false);
 	RootSplineTemp->ClearSplinePoints(false);
-	RootSplineTemp->AddSplineLocalPoint(Temp.GetLocation());
-
+	RootSplineTemp->AddSplineLocalPoint(TempTransform.GetLocation());
+	RootSplineTemp->AttachToComponent(RootComp, FAttachmentTransformRules::SnapToTargetIncludingScale, NAME_None);
 	CurrentSplineIndex = SplineComponents.Add(RootSplineTemp);
 
 	// Loop through entire string state
@@ -101,14 +107,16 @@ void ALMSystem::RenderSplineLSystem(FLSystem System, FRLSRenderInfo RenderInfo)
 		// loop through rules
 		for (int32 r = 0; r < RenderInfo.Rules.Num(); ++r)
 		{
+			auto TempRule = RenderInfo.Rules[r];
 			// check if character == variable
-			if (TempString[i] == RenderInfo.Rules[r].Variable[0])
+			if (TempString[i] == TempRule.Variable[0])
 			{
 				// loop through rules for each variable
-				for (int32 rt = 0; rt < RenderInfo.Rules[r].RuleType.Num(); ++rt)
+				for (int32 rt = 0; rt < TempRule.RuleType.Num(); ++rt)
 				{
+					auto TempSpline = SplineComponents[CurrentSplineIndex];
 					// Switch on each rule from RuleType Array
-					switch (RenderInfo.Rules[r].RuleType[rt])
+					switch (TempRule.RuleType[rt])
 					{
 					default:
 					{
@@ -120,7 +128,7 @@ void ALMSystem::RenderSplineLSystem(FLSystem System, FRLSRenderInfo RenderInfo)
 					}
 					case ERLSRenderRuleType::LSRR_Move:
 					{
-						TurtleComp->Move(RenderInfo.Rules[r].Length);
+						TurtleComp->Move(TempRule.Length);
 						break;
 					}
 					case ERLSRenderRuleType::LSRR_Draw:
@@ -128,9 +136,9 @@ void ALMSystem::RenderSplineLSystem(FLSystem System, FRLSRenderInfo RenderInfo)
 						if (SplineDrawMesh->IsValidLowLevel() && SplineDrawMaterial->IsValidLowLevel())
 						{
 							// Draw then Add a new point to the current spline
-							TurtleComp->Draw(RenderInfo.Rules[r].Length);
+							TurtleComp->Draw(TempRule.Length);
 
-							SplineComponents[CurrentSplineIndex]->AddSplineLocalPoint(TurtleComp->GetComponentTransform().GetLocation());
+							TempSpline->AddSplineLocalPoint(TurtleComp->GetComponentTransform().GetLocation());
 							PointIndex = PointIndex + 1;
 
 							//Set the color!
@@ -138,8 +146,8 @@ void ALMSystem::RenderSplineLSystem(FLSystem System, FRLSRenderInfo RenderInfo)
 							dynamicMat->SetVectorParameterValue(TEXT("Color"), FLinearColor(0.5f, 0.3f, 0.1f, 1.0f));
 
 							USplineMeshComponent* SplineMesh;
-							Temp = TurtleComp->GetComponentTransform();
-							SplineMesh = (USplineMeshComponent*)CreateProceduralComponent(USplineMeshComponent::StaticClass(), Temp);
+							TempTransform = TurtleComp->GetComponentTransform();
+							SplineMesh = (USplineMeshComponent*)CreateProceduralComponent(USplineMeshComponent::StaticClass(), TempTransform);
 							SplineMesh->SetMobility(EComponentMobility::Movable);
 
 							//Width of the mesh 
@@ -154,15 +162,15 @@ void ALMSystem::RenderSplineLSystem(FLSystem System, FRLSRenderInfo RenderInfo)
 							SplineMesh->SetEndScale(FVector2D(1.0f, 1.0f), true);
 
 							FVector pointLocationStart, pointTangentStart, pointLocationEnd, pointTangentEnd;
-							if (PointIndex == 0 && SplineComponents[CurrentSplineIndex]->GetNumberOfSplinePoints() >= 2)
+							if (PointIndex == 0 && TempSpline->GetNumberOfSplinePoints() >= 2)
 							{
-								SplineComponents[CurrentSplineIndex]->GetLocalLocationAndTangentAtSplinePoint(PointIndex, pointLocationStart, pointTangentStart);
-								SplineComponents[CurrentSplineIndex]->GetLocalLocationAndTangentAtSplinePoint(PointIndex + 1, pointLocationEnd, pointTangentEnd);
+								TempSpline->GetLocalLocationAndTangentAtSplinePoint(PointIndex, pointLocationStart, pointTangentStart);
+								TempSpline->GetLocalLocationAndTangentAtSplinePoint(PointIndex + 1, pointLocationEnd, pointTangentEnd);
 							}
-							else if (PointIndex >= 1 && SplineComponents[CurrentSplineIndex]->GetNumberOfSplinePoints() >= 2)
+							else if (PointIndex >= 1 && TempSpline->GetNumberOfSplinePoints() >= 2)
 							{
-								SplineComponents[CurrentSplineIndex]->GetLocalLocationAndTangentAtSplinePoint(PointIndex - 1, pointLocationStart, pointTangentStart);
-								SplineComponents[CurrentSplineIndex]->GetLocalLocationAndTangentAtSplinePoint(PointIndex, pointLocationEnd, pointTangentEnd);
+								TempSpline->GetLocalLocationAndTangentAtSplinePoint(PointIndex - 1, pointLocationStart, pointTangentStart);
+								TempSpline->GetLocalLocationAndTangentAtSplinePoint(PointIndex, pointLocationEnd, pointTangentEnd);
 							}
 
 							SplineMesh->SetStartAndEnd(pointLocationStart, pointTangentStart, pointLocationEnd, pointTangentEnd, false);
@@ -177,9 +185,9 @@ void ALMSystem::RenderSplineLSystem(FLSystem System, FRLSRenderInfo RenderInfo)
 						else
 						{
 							// Draw then Add a new point to the current spline
-							TurtleComp->Draw(RenderInfo.Rules[r].Length);
+							TurtleComp->Draw(TempRule.Length);
 
-							SplineComponents[CurrentSplineIndex]->AddSplineLocalPoint(TurtleComp->GetComponentTransform().GetLocation());
+							TempSpline->AddSplineLocalPoint(TurtleComp->GetComponentTransform().GetLocation());
 							PointIndex = PointIndex + 1;
 							break;
 						}
@@ -189,9 +197,9 @@ void ALMSystem::RenderSplineLSystem(FLSystem System, FRLSRenderInfo RenderInfo)
 						if (SplineDrawLeafMesh->IsValidLowLevel() && SplineDrawLeafMaterial->IsValidLowLevel())
 						{
 							// Draw Leaf then Add a new point to the current spline
-							TurtleComp->DrawLeaf(RenderInfo.Rules[r].Angle, RenderInfo.Rules[r].Length);
+							TurtleComp->DrawLeaf(TempRule.Angle, TempRule.Length);
 
-							SplineComponents[CurrentSplineIndex]->AddSplineLocalPoint(TurtleComp->GetComponentTransform().GetLocation());
+							TempSpline->AddSplineLocalPoint(TurtleComp->GetComponentTransform().GetLocation());
 							PointIndex = PointIndex + 1;
 
 							//Set the color!
@@ -199,8 +207,8 @@ void ALMSystem::RenderSplineLSystem(FLSystem System, FRLSRenderInfo RenderInfo)
 							dynamicMat->SetVectorParameterValue(TEXT("Color"), FLinearColor(0.0f, 0.5f, 0.0f, 1.0f));
 
 							USplineMeshComponent* SplineMesh;
-							Temp = TurtleComp->GetComponentTransform();
-							SplineMesh = (USplineMeshComponent*)CreateProceduralComponent(USplineMeshComponent::StaticClass(), Temp);
+							TempTransform = TurtleComp->GetComponentTransform();
+							SplineMesh = (USplineMeshComponent*)CreateProceduralComponent(USplineMeshComponent::StaticClass(), TempTransform);
 							SplineMesh->SetMobility(EComponentMobility::Movable);
 
 							//Width of the mesh 
@@ -215,15 +223,15 @@ void ALMSystem::RenderSplineLSystem(FLSystem System, FRLSRenderInfo RenderInfo)
 							SplineMesh->SetEndScale(FVector2D(1.0f, 1.0f), true);
 
 							FVector pointLocationStart, pointTangentStart, pointLocationEnd, pointTangentEnd;
-							if (PointIndex == 0 && SplineComponents[CurrentSplineIndex]->GetNumberOfSplinePoints() >= 2)
+							if (PointIndex == 0 && TempSpline->GetNumberOfSplinePoints() >= 2)
 							{
-								SplineComponents[CurrentSplineIndex]->GetLocalLocationAndTangentAtSplinePoint(PointIndex, pointLocationStart, pointTangentStart);
-								SplineComponents[CurrentSplineIndex]->GetLocalLocationAndTangentAtSplinePoint(PointIndex + 1, pointLocationEnd, pointTangentEnd);
+								TempSpline->GetLocalLocationAndTangentAtSplinePoint(PointIndex, pointLocationStart, pointTangentStart);
+								TempSpline->GetLocalLocationAndTangentAtSplinePoint(PointIndex + 1, pointLocationEnd, pointTangentEnd);
 							}
-							else if (PointIndex >= 1 && SplineComponents[CurrentSplineIndex]->GetNumberOfSplinePoints() >= 2)
+							else if (PointIndex >= 1 && TempSpline->GetNumberOfSplinePoints() >= 2)
 							{
-								SplineComponents[CurrentSplineIndex]->GetLocalLocationAndTangentAtSplinePoint(PointIndex - 1, pointLocationStart, pointTangentStart);
-								SplineComponents[CurrentSplineIndex]->GetLocalLocationAndTangentAtSplinePoint(PointIndex, pointLocationEnd, pointTangentEnd);
+								TempSpline->GetLocalLocationAndTangentAtSplinePoint(PointIndex - 1, pointLocationStart, pointTangentStart);
+								TempSpline->GetLocalLocationAndTangentAtSplinePoint(PointIndex, pointLocationEnd, pointTangentEnd);
 							}
 
 							SplineMesh->SetStartAndEnd(pointLocationStart, pointTangentStart, pointLocationEnd, pointTangentEnd, false);
@@ -237,21 +245,21 @@ void ALMSystem::RenderSplineLSystem(FLSystem System, FRLSRenderInfo RenderInfo)
 						}
 						else
 						{ // Draw Leaf then Add a new point to the current spline
-							TurtleComp->DrawLeaf(RenderInfo.Rules[r].Angle, RenderInfo.Rules[r].Length);
+							TurtleComp->DrawLeaf(TempRule.Angle, TempRule.Length);
 
-							SplineComponents[CurrentSplineIndex]->AddSplineLocalPoint(TurtleComp->GetComponentTransform().GetLocation());
+							TempSpline->AddSplineLocalPoint(TurtleComp->GetComponentTransform().GetLocation());
 							PointIndex = PointIndex + 1;
 							break;
 						}
 					}
 					case ERLSRenderRuleType::LSRR_TurnRight:
 					{
-						TurtleComp->TurnRight(RenderInfo.Rules[r].Angle);
+						TurtleComp->TurnRight(TempRule.Angle);
 						break;
 					}
 					case ERLSRenderRuleType::LSRR_TurnLeft:
 					{
-						TurtleComp->TurnLeft(RenderInfo.Rules[r].Angle);
+						TurtleComp->TurnLeft(TempRule.Angle);
 						break;
 					}
 					case ERLSRenderRuleType::LSRR_Turn180:
@@ -261,22 +269,22 @@ void ALMSystem::RenderSplineLSystem(FLSystem System, FRLSRenderInfo RenderInfo)
 					}
 					case ERLSRenderRuleType::LSRR_PitchDown:
 					{
-						TurtleComp->PitchDown(RenderInfo.Rules[r].Angle);
+						TurtleComp->PitchDown(TempRule.Angle);
 						break;
 					}
 					case ERLSRenderRuleType::LSRR_PitchUp:
 					{
-						TurtleComp->PitchUp(RenderInfo.Rules[r].Angle);
+						TurtleComp->PitchUp(TempRule.Angle);
 						break;
 					}
 					case ERLSRenderRuleType::LSRR_RollRight:
 					{
-						TurtleComp->RollRight(RenderInfo.Rules[r].Angle);
+						TurtleComp->RollRight(TempRule.Angle);
 						break;
 					}
 					case ERLSRenderRuleType::LSRR_RollLeft:
 					{
-						TurtleComp->RollLeft(RenderInfo.Rules[r].Angle);
+						TurtleComp->RollLeft(TempRule.Angle);
 						break;
 					}
 					case ERLSRenderRuleType::LSRR_Save:
@@ -290,13 +298,18 @@ void ALMSystem::RenderSplineLSystem(FLSystem System, FRLSRenderInfo RenderInfo)
 
 						// Restore turtle position then start a new spline
 						USplineComponent* SplineTemp;
-						Temp = TurtleComp->GetComponentTransform();
-						SplineTemp = (USplineComponent*)CreateProceduralComponent(USplineComponent::StaticClass(), Temp);
+						TempTransform = TurtleComp->GetComponentTransform();
+						SplineTemp = (USplineComponent*)CreateProceduralComponent(USplineComponent::StaticClass(), TempTransform);
 						SplineTemp->SetClosedLoop(false);
 						SplineTemp->ClearSplinePoints(false);
 
+						FName Name; FString SName = "Child Spline #", TempNameString = "";
+						TempNameString.FromInt(CurrentSplineIndex); SName + TempNameString;
+						Name.AppendString(SName);
+
+						SplineTemp->AttachToComponent(RootComp, FAttachmentTransformRules::SnapToTargetIncludingScale, Name);
 						// Add point at restores spline index
-						SplineTemp->AddSplineLocalPoint(Temp.GetLocation());
+						SplineTemp->AddSplineLocalPoint(TempTransform.GetLocation());
 						PointIndex = 0;
 						CurrentSplineIndex = SplineComponents.Add(SplineTemp);
 						break;
@@ -311,7 +324,9 @@ void ALMSystem::RenderSplineLSystem(FLSystem System, FRLSRenderInfo RenderInfo)
 		}
 	}
 
-	TurtleComp->SetWorldTransform(this->GetActorTransform());
+
+	TurtleComp->ResetRelativeTransform();
+	//TurtleComp->SetWorldTransform(this->GetActorTransform());
 	TurtleComp->TurtleInfo.Transform = TurtleComp->GetComponentTransform();
 
 	RegisterAllComponents();
@@ -330,14 +345,15 @@ void ALMSystem::RenderDebugLSystem(FLSystem System, FRLSRenderInfo RenderInfo)
 		// loop through rules
 		for (int32 r = 0; r < RenderInfo.Rules.Num(); ++r)
 		{
+			auto TempRule = RenderInfo.Rules[r];
 			// check if character == variable
-			if (TempString[i] == RenderInfo.Rules[r].Variable[0])
+			if (TempString[i] == TempRule.Variable[0])
 			{
 				// loop through rules for each variable
-				for (int32 rt = 0; rt < RenderInfo.Rules[r].RuleType.Num(); ++rt)
+				for (int32 rt = 0; rt < TempRule.RuleType.Num(); ++rt)
 				{
 					// Switch on each rule from RuleType Array
-					switch (RenderInfo.Rules[r].RuleType[rt])
+					switch (TempRule.RuleType[rt])
 					{
 					default:
 					{
@@ -349,27 +365,27 @@ void ALMSystem::RenderDebugLSystem(FLSystem System, FRLSRenderInfo RenderInfo)
 					}
 					case ERLSRenderRuleType::LSRR_Move:
 					{
-						TurtleComp->DebugMove(RenderInfo.Rules[r].Length);
+						TurtleComp->DebugMove(TempRule.Length);
 						break;
 					}
 					case ERLSRenderRuleType::LSRR_Draw:
 					{
-						TurtleComp->DebugDraw(RenderInfo.Rules[r].Length);
+						TurtleComp->DebugDraw(TempRule.Length);
 						break;
 					}
 					case ERLSRenderRuleType::LSRR_DrawLeaf:
 					{
-						TurtleComp->DebugDrawLeaf(RenderInfo.Rules[r].Angle, RenderInfo.Rules[r].Length);
+						TurtleComp->DebugDrawLeaf(TempRule.Angle, TempRule.Length);
 						break;
 					}
 					case ERLSRenderRuleType::LSRR_TurnRight:
 					{
-						TurtleComp->DebugTurnRight(RenderInfo.Rules[r].Angle);
+						TurtleComp->DebugTurnRight(TempRule.Angle);
 						break;
 					}
 					case ERLSRenderRuleType::LSRR_TurnLeft:
 					{
-						TurtleComp->DebugTurnLeft(RenderInfo.Rules[r].Angle);
+						TurtleComp->DebugTurnLeft(TempRule.Angle);
 						break;
 					}
 					case ERLSRenderRuleType::LSRR_Turn180:
@@ -379,22 +395,22 @@ void ALMSystem::RenderDebugLSystem(FLSystem System, FRLSRenderInfo RenderInfo)
 					}
 					case ERLSRenderRuleType::LSRR_PitchDown:
 					{
-						TurtleComp->DebugPitchDown(RenderInfo.Rules[r].Angle);
+						TurtleComp->DebugPitchDown(TempRule.Angle);
 						break;
 					}
 					case ERLSRenderRuleType::LSRR_PitchUp:
 					{
-						TurtleComp->DebugPitchUp(RenderInfo.Rules[r].Angle);
+						TurtleComp->DebugPitchUp(TempRule.Angle);
 						break;
 					}
 					case ERLSRenderRuleType::LSRR_RollRight:
 					{
-						TurtleComp->DebugRollRight(RenderInfo.Rules[r].Angle);
+						TurtleComp->DebugRollRight(TempRule.Angle);
 						break;
 					}
 					case ERLSRenderRuleType::LSRR_RollLeft:
 					{
-						TurtleComp->DebugRollLeft(RenderInfo.Rules[r].Angle);
+						TurtleComp->DebugRollLeft(TempRule.Angle);
 						break;
 					}
 					case ERLSRenderRuleType::LSRR_Save:
@@ -416,6 +432,7 @@ void ALMSystem::RenderDebugLSystem(FLSystem System, FRLSRenderInfo RenderInfo)
 			}
 		}
 	}
-	TurtleComp->SetWorldTransform(this->GetActorTransform());
+	TurtleComp->ResetRelativeTransform();
+	//TurtleComp->SetWorldTransform(this->GetActorTransform());
 	TurtleComp->TurtleInfo.Transform = TurtleComp->GetComponentTransform();
 }
