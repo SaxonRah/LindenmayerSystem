@@ -89,6 +89,8 @@ class LINDENMAYERSYSTEM_API UTurtleComponent : public USceneComponent
 {
 	GENERATED_BODY()
 
+	FHitResult TempHit;
+
 public:	
 	// Sets default values for this component's properties
 	UTurtleComponent();

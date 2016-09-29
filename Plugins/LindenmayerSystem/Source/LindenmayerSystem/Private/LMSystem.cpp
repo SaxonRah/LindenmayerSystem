@@ -20,6 +20,7 @@ ALMSystem::ALMSystem(const FObjectInitializer& ObjectInitializer)
 	// Create Turtle
 	TurtleComp = ObjectInitializer.CreateDefaultSubobject<UTurtleComponent>(this, TEXT("Turtle Component"));
 	TurtleComp->SetMobility(EComponentMobility::Movable);
+	TurtleComp->SetupAttachment(this->GetRootComponent(), TEXT("Turtle Component on Root"));
 
 
 	TurtleComp->ResetRelativeTransform();
