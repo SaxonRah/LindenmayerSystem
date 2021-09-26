@@ -10,7 +10,6 @@ UTurtleComponent::UTurtleComponent()
 {
 	// Set this component to be initialized when the game starts, and to be ticked every frame.  You can turn these features
 	// off to improve performance if you don't need them.
-	bWantsBeginPlay = true;
 	PrimaryComponentTick.bCanEverTick = false;
 
 	// ...
@@ -73,7 +72,7 @@ FTransform UTurtleComponent::Move(float length)
 
 	// Trace move before move, if path is not clear set transform based on trace hit
 	//If Trace Hits anything
-	if (Trace(GetWorld(), ActorToIgnore, StartPosition, FinalPosForward, hitForward))
+	if (TraceActor(GetWorld(), ActorToIgnore, StartPosition, FinalPosForward, hitForward))
 	{
 		TempFinalTransform = GetSurfaceTransformFromHit(hitForward.ImpactPoint, hitForward.ImpactNormal);
 		// Move Turtle To Hit
@@ -86,7 +85,7 @@ FTransform UTurtleComponent::Move(float length)
 
 		// otherwise if path is clear set transform on final location and trace down 
 		//If Trace Hits anything	
-		if (Trace(GetWorld(), ActorToIgnore, StartPosition, FinalPosDown, hitDown))
+		if (TraceActor(GetWorld(), ActorToIgnore, StartPosition, FinalPosDown, hitDown))
 		{
 			TempFinalTransform = GetSurfaceTransformFromHit(hitDown.ImpactPoint, hitDown.ImpactNormal);
 			// Move Turtle To Hit

@@ -4,7 +4,7 @@ using UnrealBuildTool;
 
 public class LindenmayerSystem : ModuleRules
 {
-	public LindenmayerSystem(TargetInfo Target)
+	public LindenmayerSystem(ReadOnlyTargetRules Target) : base (Target)
 	{
 		
 		PublicIncludePaths.AddRange(

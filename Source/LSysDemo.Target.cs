@@ -5,21 +5,10 @@ using System.Collections.Generic;
 
 public class LSysDemoTarget : TargetRules
 {
-	public LSysDemoTarget(TargetInfo Target)
+	public LSysDemoTarget(TargetInfo Target) : base (Target)
 	{
 		Type = TargetType.Game;
-	}
-
-	//
-	// TargetRules interface.
-	//
-
-	public override void SetupBinaries(
-		TargetInfo Target,
-		ref List<UEBuildBinaryConfiguration> OutBuildBinaryConfigurations,
-		ref List<string> OutExtraModuleNames
-		)
-	{
-		OutExtraModuleNames.AddRange( new string[] { "LSysDemo" } );
+		
+		ExtraModuleNames.Add("LSysDemo");
 	}
 }

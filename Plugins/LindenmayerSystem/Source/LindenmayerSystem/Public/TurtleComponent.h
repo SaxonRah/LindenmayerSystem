@@ -7,7 +7,8 @@
 #include "TurtleComponent.generated.h"
 
 
-static FORCEINLINE bool Trace(
+
+static FORCEINLINE bool TraceActor(
 	UWorld* World,
 	AActor* ActorToIgnore,
 	const FVector& Start,
@@ -45,9 +46,11 @@ static FORCEINLINE bool Trace(
 	return (HitOut.GetActor() != NULL);
 }
 
+
+
 //Trace with an Array of Actors to Ignore
 //   Ignore as many actors as you want!
-static FORCEINLINE bool Trace(
+static FORCEINLINE bool TraceActors(
 	UWorld* World,
 	TArray<AActor*>& ActorsToIgnore,
 	const FVector& Start,
